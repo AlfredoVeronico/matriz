@@ -150,7 +150,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
-                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos.</p>
+                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos. (Clica numa célula para editar o requisito)</p>
                     </div>
 
                     <!-- Filters -->
@@ -633,7 +633,9 @@
                         ${activeRoles.map(role => {
                             const req = dbData.requisitos.find(r => r.funcao_id == role.id && r.competencia_id == c.id);
                             const lvl = req ? req.nivel_requerido : 0;
-                            return `<td class="p-3 text-center">${getLevelBadge(lvl)}</td>`;
+                            return `<td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition rounded group" onclick="handleCellClick(${role.id}, ${c.id}, ${lvl})" title="Clique para editar nível requerido">
+                                        <div class="relative">${getLevelBadge(lvl)}<span class="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-[10px] text-schmitt-blue font-bold">✎</span></div>
+                                    </td>`;
                         }).join('')}
                     </tr>
                 `;
@@ -831,6 +833,50 @@
             if (diff >= 0) return `<span class="text-emerald-700 font-medium">Competência consolidada.</span>`;
             if (diff === -1) return `<span class="text-amber-700 font-semibold">Formação On-the-Job / Acompanhamento.</span>`;
             return `<span class="text-red-600 font-bold">Formação Específica Necessária.</span>`;
+        }
+
+        
+        async function handleCellClick(funcaoId, competenciaId, currentLvl) {
+            const newLvlStr = prompt("Editar Nível Requerido (0 a 4):", currentLvl);
+            if (newLvlStr === null) return;
+            const newLvl = parseInt(newLvlStr, 10);
+            if (isNaN(newLvl) || newLvl < 0 || newLvl > 4) {
+                alert("Por favor insira um valor válido entre 0 e 4.");
+                return;
+            }
+
+            if (isOnlineSupabase && supabaseClient) {
+                try {
+                    const existing = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == competenciaId);
+                    
+                    if (existing) {
+                        const { error } = await supabaseClient
+                            .from('requisitos_funcao')
+                            .update({ nivel_requerido: newLvl })
+                            .eq('id', existing.id);
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabaseClient
+                            .from('requisitos_funcao')
+                            .insert({ funcao_id: funcaoId, competencia_id: competenciaId, nivel_requerido: newLvl });
+                        if (error) throw error;
+                    }
+
+                    await fetchAllDataFromSupabase();
+                    console.log("Requisito atualizado na base de dados com sucesso!");
+                } catch (err) {
+                    console.error("Erro ao atualizar requisito:", err);
+                    alert("Erro ao atualizar no Supabase: " + err.message);
+                }
+            } else {
+                const existing = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == competenciaId);
+                if (existing) {
+                    existing.nivel_requerido = newLvl;
+                } else {
+                    dbData.requisitos.push({ id: Date.now(), funcao_id: funcaoId, competencia_id: competenciaId, nivel_requerido: newLvl });
+                }
+                renderMatrixTable();
+            }
         }
 
         // --- NAVIGATION TABS ---
