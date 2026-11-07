@@ -86,7 +86,7 @@
             <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Departamentos</span>
-                    <span id="stat-dept-count" class="text-2xl font-bold text-schmitt-darkBlue">2</span>
+                    <span id="stat-dept-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
                 </div>
                 <div class="p-3 bg-blue-50 text-schmitt-blue rounded-xl">
                     <i data-lucide="building-2" class="w-6 h-6"></i>
@@ -151,7 +151,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
-                        <p class="text-xs text-slate-500">Vizualização completa da estrutura de competências e níveis exigidos.</p>
+                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos.</p>
                     </div>
 
                     <!-- Filters -->
@@ -343,32 +343,29 @@
                 { id: 6, departamento_id: 2, nome: "Escadas Rolantes (NA)" }
             ],
             competencias: [
-                { id: 1, categoria_id: 1, nome: "Organização e Métodos de Trabalho", codigo_coluna: "G1" },
-                { id: 2, categoria_id: 1, nome: "Comunicação e Atendimento ao Cliente", codigo_coluna: "G2" },
-                { id: 3, categoria_id: 2, nome: "Portal do Técnico / S+ App", codigo_coluna: "D1" },
-                { id: 4, categoria_id: 2, nome: "Consulta de Esquemas Elétricos no Tablet", codigo_coluna: "D2" },
-                { id: 5, categoria_id: 3, nome: "Diagnóstico de Avarias em Manobras", codigo_coluna: "T1" },
-                { id: 6, categoria_id: 3, nome: "Variadores de Frequência (VVVF)", codigo_coluna: "T2" },
-                { id: 7, categoria_id: 4, nome: "Trabalho Seguro em Altura / Poço", codigo_coluna: "S1" },
-                { id: 8, categoria_id: 5, nome: "Aplicação de Guias e Suportes de Cabina", codigo_coluna: "M1" },
-                { id: 9, categoria_id: 6, nome: "Alinhamento de Treliça e Degraus Escada", codigo_coluna: "E1" }
+                { id: 1, categoria_id: 1, nome: "Organização e Métodos de Trabalho", codigo_coluna: "G1", sub_categoria: "" },
+                { id: 2, categoria_id: 1, nome: "Comunicação e Atendimento ao Cliente", codigo_coluna: "G2", sub_categoria: "" },
+                { id: 3, categoria_id: 2, nome: "Portal do Técnico / S+ App", codigo_coluna: "D1", sub_categoria: "" },
+                { id: 4, categoria_id: 2, nome: "Consulta de Esquemas Elétricos no Tablet", codigo_coluna: "D2", sub_categoria: "" },
+                { id: 5, categoria_id: 3, nome: "Diagnóstico de Avarias em Manobras", codigo_coluna: "T1", sub_categoria: "" },
+                { id: 6, categoria_id: 3, nome: "Variadores de Frequência (VVVF)", codigo_coluna: "T2", sub_categoria: "" },
+                { id: 7, categoria_id: 4, nome: "Trabalho Seguro em Altura / Poço", codigo_coluna: "S1", sub_categoria: "" },
+                { id: 8, categoria_id: 5, nome: "Aplicação de Guias e Suportes de Cabina", codigo_coluna: "M1", sub_categoria: "" },
+                { id: 9, categoria_id: 6, nome: "Alinhamento de Treliça e Degraus Escada", codigo_coluna: "E1", sub_categoria: "" }
             ],
             funcoes: [
-                { id: 1, departamento_id: 1, codigo_cargo: 0, designacao: "Aprendiz SAV", experiencia_requerida: "0-6 meses" },
-                { id: 2, departamento_id: 1, codigo_cargo: 1, designacao: "Técnico Elevadores 1", experiencia_requerida: "1 ano" },
-                { id: 3, departamento_id: 1, codigo_cargo: 2, designacao: "Técnico Oficial", experiencia_requerida: "3 anos" },
-                { id: 4, departamento_id: 1, codigo_cargo: 3, designacao: "Técnico Especialista", experiencia_requerida: "5+ anos" },
-                { id: 5, departamento_id: 2, codigo_cargo: 1, designacao: "Oficial Montagem 1", experiencia_requerida: "2 anos" },
-                { id: 6, departamento_id: 2, codigo_cargo: 3, designacao: "Especialista Escadas (NA)", experiencia_requerida: "4 anos" }
+                { id: 1, departamento_id: 1, codigo_cargo: 0, designacao: "Aprendiz SAV", experiencia_requerida: "0-6 meses", bonificacao: "" },
+                { id: 2, departamento_id: 1, codigo_cargo: 1, designacao: "Técnico Elevadores 1", experiencia_requerida: "1 ano", bonificacao: "" },
+                { id: 3, departamento_id: 1, codigo_cargo: 2, designacao: "Técnico Oficial", experiencia_requerida: "3 anos", bonificacao: "" },
+                { id: 4, departamento_id: 1, codigo_cargo: 3, designacao: "Técnico Especialista", experiencia_requerida: "5+ anos", bonificacao: "" },
+                { id: 5, departamento_id: 2, codigo_cargo: 1, designacao: "Oficial Montagem 1", experiencia_requerida: "2 anos", bonificacao: "" },
+                { id: 6, departamento_id: 2, codigo_cargo: 3, designacao: "Especialista Escadas (NA)", experiencia_requerida: "4 anos", bonificacao: "" }
             ],
             requisitos_funcao: [
-                // Aprendiz
                 { id: 1, funcao_id: 1, competencia_id: 1, nivel_requerido: 1 },
                 { id: 2, funcao_id: 1, competencia_id: 2, nivel_requerido: 1 },
                 { id: 3, funcao_id: 1, competencia_id: 3, nivel_requerido: 1 },
                 { id: 4, funcao_id: 1, competencia_id: 5, nivel_requerido: 0 },
-
-                // Técnico Oficial
                 { id: 5, funcao_id: 3, competencia_id: 1, nivel_requerido: 3 },
                 { id: 6, funcao_id: 3, competencia_id: 2, nivel_requerido: 3 },
                 { id: 7, funcao_id: 3, competencia_id: 3, nivel_requerido: 4 },
@@ -376,8 +373,6 @@
                 { id: 9, funcao_id: 3, competencia_id: 5, nivel_requerido: 3 },
                 { id: 10, funcao_id: 3, competencia_id: 6, nivel_requerido: 3 },
                 { id: 11, funcao_id: 3, competencia_id: 7, nivel_requerido: 4 },
-
-                // Especialista Escadas
                 { id: 12, funcao_id: 6, competencia_id: 8, nivel_requerido: 2 },
                 { id: 13, funcao_id: 6, competencia_id: 9, nivel_requerido: 4 },
                 { id: 14, funcao_id: 6, competencia_id: 7, nivel_requerido: 4 }
@@ -391,8 +386,8 @@
                 { id: 1, colaborador_id: 1, competencia_id: 1, nivel_atual: 3 },
                 { id: 2, colaborador_id: 1, competencia_id: 2, nivel_atual: 3 },
                 { id: 3, colaborador_id: 1, competencia_id: 3, nivel_atual: 4 },
-                { id: 4, colaborador_id: 1, competencia_id: 4, nivel_atual: 3 }, // Gap (-1)
-                { id: 5, colaborador_id: 1, competencia_id: 5, nivel_atual: 2 }, // Gap (-1)
+                { id: 4, colaborador_id: 1, competencia_id: 4, nivel_atual: 3 },
+                { id: 5, colaborador_id: 1, competencia_id: 5, nivel_atual: 2 },
                 { id: 6, colaborador_id: 1, competencia_id: 6, nivel_atual: 3 },
                 { id: 7, colaborador_id: 1, competencia_id: 7, nivel_atual: 4 },
                 { id: 8, colaborador_id: 2, competencia_id: 1, nivel_atual: 1 },
@@ -415,31 +410,21 @@
             avaliacoes: []
         };
 
-        // --- FUNÇÃO PEDIDA PARA CARREGAR CATEGORIAS POR DEPARTAMENTO ---
         async function carregarCategoriasPorDepartamento(departamentoId) {
-            // 1. Limpar o select de categorias atual
             const selectCategoria = document.getElementById('filtro-categoria');
             if (!selectCategoria) return;
             selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>';
 
-            // Se estivermos no modo Supabase ao vivo:
             if (isOnlineSupabase && supabaseClient) {
-                let query = supabaseClient
-                    .from('categorias_competencia')
-                    .select('id, nome');
-
+                let query = supabaseClient.from('categorias_competencia').select('id, nome');
                 if (departamentoId && departamentoId !== 'ALL') {
                     query = query.eq('departamento_id', departamentoId);
                 }
-
                 const { data: categorias, error } = await query;
-
                 if (error) {
                     console.error('Erro ao carregar categorias:', error);
                     return;
                 }
-
-                // 3. Preencher o select com as categorias filtradas do Supabase
                 categorias.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat.id;
@@ -447,12 +432,10 @@
                     selectCategoria.appendChild(option);
                 });
             } else {
-                // Modo Fallback com dados locais (MOCK_DATA / dbData)
                 let categorias = dbData.categorias;
                 if (departamentoId && departamentoId !== 'ALL') {
                     categorias = categorias.filter(c => c.departamento_id == departamentoId);
                 }
-
                 categorias.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat.id;
@@ -486,16 +469,12 @@
             try {
                 updateStatusBadge('connecting', 'A Ligar ao Supabase...');
                 supabaseClient = window.supabase.createClient(url, key);
-                
-                // Test connection by fetching departamentos table
                 const { data, error } = await supabaseClient.from('departamentos').select('*');
-                
                 if (error) throw error;
 
                 isOnlineSupabase = true;
                 updateStatusBadge('online', 'Supabase Ligado (Ao Vivo)');
                 await fetchAllDataFromSupabase();
-
             } catch (err) {
                 console.warn('Erro ao ligar ao Supabase, a usar dados locais:', err);
                 isOnlineSupabase = false;
@@ -513,7 +492,6 @@
             dbData.requisitos = JSON.parse(JSON.stringify(MOCK_DATA.requisitos_funcao));
             dbData.colaboradores = JSON.parse(JSON.stringify(MOCK_DATA.colaboradores));
             dbData.avaliacoes = JSON.parse(JSON.stringify(MOCK_DATA.avaliacoes_colaborador));
-
             renderAllUI();
         }
 
@@ -536,7 +514,6 @@
                 dbData.requisitos = rRes.data || [];
                 dbData.colaboradores = colRes.data || [];
                 dbData.avaliacoes = aRes.data || [];
-
                 renderAllUI();
             } catch (e) {
                 console.error("Erro a carregar tabelas do Supabase:", e);
@@ -546,12 +523,10 @@
         function saveSupabaseConfig() {
             const url = document.getElementById('supabase-url-input').value.trim();
             const key = document.getElementById('supabase-key-input').value.trim();
-
             if (!url || !key) {
                 alert('Por favor preencha a URL e a Anon Key do Supabase.');
                 return;
             }
-
             localStorage.setItem('schmitt_sp_url', url);
             localStorage.setItem('schmitt_sp_key', key);
             tryConnectSupabase(url, key);
@@ -599,11 +574,8 @@
 
         function populateDropdownFilters() {
             const deptSelect = document.getElementById('filter-dept');
-
             deptSelect.innerHTML = `<option value="ALL">Todos os Departamentos</option>` +
                 dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
-
-            // Carregar as categorias do departamento ativo
             carregarCategoriasPorDepartamento(deptSelect.value);
         }
 
@@ -620,13 +592,11 @@
             const catFilter = document.getElementById('filtro-categoria').value;
             const search = document.getElementById('filter-search').value.toLowerCase();
 
-            // Active Roles
             let activeRoles = dbData.funcoes;
             if (deptFilter !== 'ALL') {
                 activeRoles = activeRoles.filter(f => f.departamento_id == deptFilter);
             }
 
-            // Header
             thead.innerHTML = `
                 <tr>
                     <th class="p-3">Categoria</th>
@@ -635,7 +605,6 @@
                 </tr>
             `;
 
-            // Filtered Competencies
             let filteredComps = dbData.competencias.filter(c => {
                 const catObj = dbData.categorias.find(cat => cat.id == c.categoria_id);
                 const matchDept = (deptFilter === 'ALL' || (catObj && catObj.departamento_id == deptFilter));
@@ -644,7 +613,7 @@
                 return matchDept && matchCat && matchSearch;
             });
 
-            // Sort competencies by category name so they are grouped together
+            // Group & sort competencies by category name
             filteredComps.sort((a, b) => {
                 const catA = (dbData.categorias.find(cat => cat.id == a.categoria_id) || { nome: '' }).nome;
                 const catB = (dbData.categorias.find(cat => cat.id == b.categoria_id) || { nome: '' }).nome;
@@ -694,7 +663,6 @@
             const funcao = dbData.funcoes.find(f => f.id == colab.funcao_atual_id) || { designacao: 'Não Definida' };
             const dept = dbData.departamentos.find(d => d.id == colab.departamento_id) || { nome: 'N/A' };
 
-            // Calculate overall alignment
             const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
             let totalReq = 0, achieved = 0, gaps = 0;
 
@@ -736,7 +704,6 @@
                 </div>
             `;
 
-            // Skill Gap Table
             tbody.innerHTML = dbData.competencias.map(comp => {
                 const catObj = dbData.categorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
                 const req = dbData.requisitos.find(r => r.funcao_id == colab.funcao_atual_id && r.competencia_id == comp.id);
@@ -764,7 +731,6 @@
             colabSelect.innerHTML = dbData.colaboradores.map(c => `
                 <option value="${c.id}">${c.nome}</option>
             `).join('');
-
             loadFormCompetenciesForColab();
         }
 
@@ -784,13 +750,13 @@
 
             if (isOnlineSupabase && supabaseClient) {
                 try {
-                    // Upsert into Supabase avaliacoes_colaborador table
                     const { error } = await supabaseClient
                         .from('avaliacoes_colaborador')
                         .upsert({ 
                             colaborador_id: colabId, 
                             competencia_id: compId, 
-                            nivel_atual: level 
+                            nivel_atual: level,
+                            data_atualizacao: new Date().toISOString()
                         }, { onConflict: 'colaborador_id,competencia_id' });
 
                     if (error) throw error;
@@ -798,7 +764,6 @@
                     feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200";
                     feedback.innerText = "✓ Avaliação gravada com sucesso no Supabase PostgreSQL!";
                     feedback.classList.remove('hidden');
-
                     await fetchAllDataFromSupabase();
                 } catch (err) {
                     console.error('Erro ao guardar no Supabase:', err);
@@ -807,7 +772,6 @@
                     feedback.classList.remove('hidden');
                 }
             } else {
-                // Local state update
                 const existingIndex = dbData.avaliacoes.findIndex(a => a.colaborador_id === colabId && a.competencia_id === compId);
                 if (existingIndex >= 0) {
                     dbData.avaliacoes[existingIndex].nivel_atual = level;
@@ -818,15 +782,13 @@
                 feedback.className = "p-3 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200";
                 feedback.innerText = "✓ Avaliação guardada localmente (Modo Demonstrativo).";
                 feedback.classList.remove('hidden');
-
                 renderColaboradorProfile();
             }
 
             setTimeout(() => feedback.classList.add('hidden'), 4000);
         }
 
-                // --- HELPER BADGE FUNCTIONS (NOVA ESCALAS COM SÍMBOLOS CIRCULARES) ---
-                // --- SVG UNIFORM LEVEL BADGES ---
+        // --- SVG UNIFORM LEVEL BADGES ---
         function getSvgCircle(nivel) {
             const svgs = {
                 0: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="0 — Não aplicável"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/></svg>',
@@ -857,7 +819,6 @@
             return `<span class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
                         ${svg} <span>${labels[nivel] || nivel}</span>
                     </span>`;
-        }
         }
 
         function getGapStateBadge(diff, reqLvl) {
@@ -890,6 +851,3 @@
     </script>
 </body>
 </html>
-
-
-
