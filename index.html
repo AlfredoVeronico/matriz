@@ -3,101 +3,806 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projeto Supabase + PostgreSQL</title>
-    <!-- Importar o cliente do Supabase via CDN -->
+    <title>Plataforma de Gestão & Consulta de Competências | Schmitt + Sohn</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        schmitt: {
+                            blue: '#0055A5',
+                            darkBlue: '#152B52',
+                            accent: '#0083CA',
+                            lightBg: '#F8FAFC',
+                            cardBg: '#FFFFFF',
+                            green: '#10B981',
+                            amber: '#F59E0B',
+                            red: '#EF4444'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #efefef; color: #333; padding: 40px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { color: #23308E; margin-top: 0; }
-        input, button { padding: 10px; margin: 5px 0 15px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #0072bc; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #005a99; }
-        ul { list-style: none; padding: 0; }
-        li { background: #f9f9f9; padding: 10px; margin-bottom: 8px; border-left: 4px solid #0072bc; border-radius: 2px; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body>
+<body class="text-slate-800 min-h-screen flex flex-col">
 
-<div class="container">
-    <h2>Registo de Dados (Supabase + PostgreSQL)</h2>
-    
-    <!-- Formulário de Inserção -->
-    <input type="text" id="inputNome" placeholder="Nome do registo...">
-    <input type="text" id="inputDesc" placeholder="Descrição detalhada...">
-    <button onclick="inserirRegisto()">Guardar na Base de Dados</button>
+    <!-- Top Navigation Header -->
+    <header class="bg-schmitt-darkBlue text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-schmitt-accent p-2 rounded-xl shadow-inner">
+                        <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
+                            <span>Matriz de Competências</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-slate-300 font-normal">Supabase DB</span>
+                        </h1>
+                        <p class="text-xs text-slate-300">Schmitt + Sohn Elevadores — SAV & Montagem</p>
+                    </div>
+                </div>
 
-    <h3>Lista de Registos Atuais</h3>
-    <ul id="listaRegistos">
-        <li>A carregar dados...</li>
-    </ul>
-</div>
+                <!-- Database Status Badge -->
+                <div class="flex items-center space-x-3">
+                    <div id="connection-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span id="status-text">Modo Demonstrativo (Local)</span>
+                    </div>
+                    <button onclick="switchTab('tab-config')" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition" title="Configurar Supabase">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<script>
-    // ==========================================
-    // CONFIGURAÇÃO DO SUPABASE (SUBSTITUI AQUI)
-    // ==========================================
-    const SUPABASE_URL = 'https://gzcofcwatkvzulzqmofv.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_Blk724DEiYhPTQhaxXn5GA_OLDB9yOU';
-    
-    const { createClient } = supabase;
-    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <!-- Main App Container -->
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow flex flex-col space-y-6">
 
-    // Função para carregar e listar os dados do PostgreSQL
-    async function carregarRegistos() {
-        const { data, error } = await _supabase
-            .from('registos')
-            .select('*')
-            .order('id', { ascending: false });
+        <!-- Top Metrics Overview -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Departamentos</span>
+                    <span id="stat-dept-count" class="text-2xl font-bold text-schmitt-darkBlue">2</span>
+                </div>
+                <div class="p-3 bg-blue-50 text-schmitt-blue rounded-xl">
+                    <i data-lucide="building-2" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Total Competências</span>
+                    <span id="stat-comp-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
+                </div>
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i data-lucide="layers" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Funções Mapeadas</span>
+                    <span id="stat-func-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <i data-lucide="award" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Colaboradores</span>
+                    <span id="stat-colab-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
+                </div>
+                <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
 
-        const lista = document.getElementById('listaRegistos');
-        lista.innerHTML = '';
+        <!-- Section Navigation Tabs -->
+        <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex flex-wrap gap-2">
+            <button id="btn-tab-matrix" onclick="switchTab('tab-matrix')" 
+                    class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+                <span>Matriz de Requisitos</span>
+            </button>
+            <button id="btn-tab-colab" onclick="switchTab('tab-colab')" 
+                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
+                <i data-lucide="user-check" class="w-4 h-4"></i>
+                <span>Consulta de Colaboradores</span>
+            </button>
+            <button id="btn-tab-eval" onclick="switchTab('tab-eval')" 
+                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <span>Registar Avaliação</span>
+            </button>
+            <button id="btn-tab-config" onclick="switchTab('tab-config')" 
+                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
+                <i data-lucide="key" class="w-4 h-4"></i>
+                <span>Conexão Supabase</span>
+            </button>
+        </div>
 
-        if (error) {
-            console.error('Erro ao buscar dados:', error);
-            lista.innerHTML = '<li>Erro ao carregar dados. Verifica as tuas credenciais.</li>';
-            return;
+        <!-- TAB 1: MATRIZ DE REQUISITOS (CONSULTA GERAL) -->
+        <div id="tab-matrix" class="space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
+                        <p class="text-xs text-slate-500">Vizualização completa da estrutura de competências e níveis exigidos.</p>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <select id="filter-dept" onchange="renderMatrixTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none">
+                            <option value="ALL">Todos os Departamentos</option>
+                        </select>
+                        <select id="filter-cat" onchange="renderMatrixTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none">
+                            <option value="ALL">Todas as Categorias</option>
+                        </select>
+                        <div class="relative flex-grow md:flex-grow-0">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="filter-search" oninput="renderMatrixTable()" placeholder="Pesquisar..." 
+                                   class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matrix Table -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="matrix-thead">
+                            <!-- Populated dynamically -->
+                        </thead>
+                        <tbody id="matrix-tbody" class="divide-y divide-slate-100 bg-white">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CONSULTA DE COLABORADORES & GAP ANALYSIS -->
+        <div id="tab-colab" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
+                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo para cálculo de necessidades de formação.</p>
+                    </div>
+
+                    <!-- Colaborador Selector -->
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-semibold text-slate-600">Selecionar Técnico:</label>
+                        <select id="colab-select" onchange="renderColaboradorProfile()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-schmitt-blue focus:outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Profile Info Card -->
+                <div id="colab-info-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Detailed Skill Match Table -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Categoria</th>
+                                <th class="p-3">Competência</th>
+                                <th class="p-3 text-center">Nível Requerido</th>
+                                <th class="p-3 text-center">Nível Atual</th>
+                                <th class="p-3 text-center">Estado / GAP</th>
+                                <th class="p-3">Plano de Ação Sugerido</th>
+                            </tr>
+                        </thead>
+                        <tbody id="colab-skills-tbody" class="divide-y divide-slate-100 bg-white">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: REGISTAR / EDITAR AVALIAÇÕES -->
+        <div id="tab-eval" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 max-w-3xl mx-auto">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="edit" class="w-5 h-5 text-schmitt-blue"></i>
+                        <span>Registar Níveis de Competência</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Atualize as avaliações no Supabase de um colaborador existente ou crie um novo técnico.</p>
+                </div>
+
+                <form id="form-eval" onsubmit="handleSaveEvaluation(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Colaborador</label>
+                            <select id="form-colab-id" onchange="loadFormCompetenciesForColab()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Competência a Avaliar</label>
+                            <select id="form-comp-id" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nível Demonstrado pelo Técnico (0 a 4)</label>
+                        <select id="form-level" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 focus:outline-none">
+                            <option value="0">0 — Não Desenvolvido / N/A</option>
+                            <option value="1">1 — Executa com Apoio / Básico</option>
+                            <option value="2">2 — Executa com Autonomia / Intermédio</option>
+                            <option value="3">3 — Domínio Avançado / Autonomia Total</option>
+                            <option value="4">4 — Perito / Formador Interno</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2 flex justify-end">
+                        <button type="submit" class="px-5 py-2.5 bg-schmitt-blue text-white rounded-xl text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Guardar Avaliação na Base de Dados</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="form-feedback" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CONFIGURAÇÃO DO SUPABASE -->
+        <div id="tab-config" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-5 max-w-2xl mx-auto">
+                <div class="border-b border-slate-100 pb-3">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="key" class="w-5 h-5 text-schmitt-blue"></i>
+                        <span>Credenciais do Projeto Supabase</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Insira a URL e Chave Pública (Anon Key) do seu projeto Supabase para sincronizar em tempo real.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Project URL (ex: https://xxxx.supabase.co)</label>
+                        <input type="text" id="supabase-url-input" placeholder="https://xxxxxxxxxxxx.supabase.co" 
+                               class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">API Anon Key (Public Key)</label>
+                        <textarea id="supabase-key-input" rows="3" placeholder="eyJhY... (Cole a sua chave anon)" 
+                                  class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30"></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-2">
+                        <button onclick="saveSupabaseConfig()" class="px-5 py-2.5 bg-schmitt-blue text-white rounded-xl text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
+                            <i data-lucide="plug" class="w-4 h-4"></i>
+                            <span>Testar & Conectar</span>
+                        </button>
+                        <button onclick="resetToLocalData()" class="px-4 py-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl text-xs font-semibold transition">
+                            Usar Dados Locais de Teste
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl text-xs text-blue-800 space-y-1">
+                    <span class="font-bold block">Nota de Segurança:</span>
+                    <p class="text-[11px] text-blue-700">As credenciais são guardadas apenas no <code>localStorage</code> do seu navegador web local. Garantimos que a chave Anon Key pública apenas acede aos dados com Row Level Security (RLS) devidamente ativado ou desativado para leitura no projeto.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+        <p>© Schmitt + Sohn Elevadores — Dashboard de Matriz de Competências (Supabase Connected)</p>
+    </footer>
+
+    <!-- SCRIPT APPLICATION CORE LOGIC -->
+    <script>
+        // --- MOCK LOCAL DATASET (FALLBACK WORK OUT-OF-THE-BOX) ---
+        const MOCK_DATA = {
+            departamentos: [
+                { id: 1, nome: "SAV - Manutenção & Assistência" },
+                { id: 2, nome: "Montagem de Elevadores & Escadas" }
+            ],
+            categorias_competencia: [
+                { id: 1, departamento_id: 1, nome: "Gerais & Atendimento" },
+                { id: 2, departamento_id: 1, nome: "Ferramentas Digitais" },
+                { id: 3, departamento_id: 1, nome: "Sistemas Elétricos & Manobra" },
+                { id: 4, departamento_id: 1, nome: "Segurança & HST" },
+                { id: 5, departamento_id: 2, nome: "Estruturas & Mecânica" },
+                { id: 6, departamento_id: 2, nome: "Escadas Rolantes (NA)" }
+            ],
+            competencias: [
+                { id: 1, categoria_id: 1, nome: "Organização e Métodos de Trabalho", codigo_coluna: "G1" },
+                { id: 2, categoria_id: 1, nome: "Comunicação e Atendimento ao Cliente", codigo_coluna: "G2" },
+                { id: 3, categoria_id: 2, nome: "Portal do Técnico / S+ App", codigo_coluna: "D1" },
+                { id: 4, categoria_id: 2, nome: "Consulta de Esquemas Elétricos no Tablet", codigo_coluna: "D2" },
+                { id: 5, categoria_id: 3, nome: "Diagnóstico de Avarias em Manobras", codigo_coluna: "T1" },
+                { id: 6, categoria_id: 3, nome: "Variadores de Frequência (VVVF)", codigo_coluna: "T2" },
+                { id: 7, categoria_id: 4, name: "Trabalho Seguro em Altura / Poço", codigo_coluna: "S1" },
+                { id: 8, categoria_id: 5, nome: "Aplicação de Guias e Suportes de Cabina", codigo_coluna: "M1" },
+                { id: 9, categoria_id: 6, nome: "Alinhamento de Treliça e Degraus Escada", codigo_coluna: "E1" }
+            ],
+            funcoes: [
+                { id: 1, departamento_id: 1, codigo_cargo: 0, designacao: "Aprendiz SAV", experiencia_requerida: "0-6 meses" },
+                { id: 2, departamento_id: 1, codigo_cargo: 1, designacao: "Técnico Elevadores 1", experiencia_requerida: "1 ano" },
+                { id: 3, departamento_id: 1, codigo_cargo: 2, designacao: "Técnico Oficial", experiencia_requerida: "3 anos" },
+                { id: 4, departamento_id: 1, codigo_cargo: 3, designacao: "Técnico Especialista", experiencia_requerida: "5+ anos" },
+                { id: 5, departamento_id: 2, codigo_cargo: 1, designacao: "Oficial Montagem 1", experiencia_requerida: "2 anos" },
+                { id: 6, departamento_id: 2, codigo_cargo: 3, designacao: "Especialista Escadas (NA)", experiencia_requerida: "4 anos" }
+            ],
+            requisitos_funcao: [
+                // Aprendiz
+                { id: 1, funcao_id: 1, competencia_id: 1, nivel_requerido: 1 },
+                { id: 2, funcao_id: 1, competencia_id: 2, nivel_requerido: 1 },
+                { id: 3, funcao_id: 1, competencia_id: 3, nivel_requerido: 1 },
+                { id: 4, funcao_id: 1, competencia_id: 5, nivel_requerido: 0 },
+
+                // Técnico Oficial
+                { id: 5, funcao_id: 3, competencia_id: 1, nivel_requerido: 3 },
+                { id: 6, funcao_id: 3, competencia_id: 2, nivel_requerido: 3 },
+                { id: 7, funcao_id: 3, competencia_id: 3, nivel_requerido: 4 },
+                { id: 8, funcao_id: 3, competencia_id: 4, nivel_requerido: 4 },
+                { id: 9, funcao_id: 3, competencia_id: 5, nivel_requerido: 3 },
+                { id: 10, funcao_id: 3, competencia_id: 6, nivel_requerido: 3 },
+                { id: 11, funcao_id: 3, competencia_id: 7, nivel_requerido: 4 },
+
+                // Especialista Escadas
+                { id: 12, funcao_id: 6, competencia_id: 8, nivel_requerido: 2 },
+                { id: 13, funcao_id: 6, competencia_id: 9, nivel_requerido: 4 },
+                { id: 14, funcao_id: 6, competencia_id: 7, nivel_requerido: 4 }
+            ],
+            colaboradores: [
+                { id: 1, nome: "António Silva", funcao_atual_id: 3, departamento_id: 1, email: "asilva@schmitt.pt" },
+                { id: 2, nome: "Carlos Santos", funcao_atual_id: 1, departamento_id: 1, email: "csantos@schmitt.pt" },
+                { id: 3, nome: "Manuel Ferreira", funcao_atual_id: 6, departamento_id: 2, email: "mferreira@schmitt.pt" }
+            ],
+            avaliacoes_colaborador: [
+                { id: 1, colaborador_id: 1, competencia_id: 1, nivel_atual: 3 },
+                { id: 2, colaborador_id: 1, competencia_id: 2, nivel_atual: 3 },
+                { id: 3, colaborador_id: 1, competencia_id: 3, nivel_atual: 4 },
+                { id: 4, colaborador_id: 1, competencia_id: 4, nivel_atual: 3 }, // Gap (-1)
+                { id: 5, colaborador_id: 1, competencia_id: 5, nivel_atual: 2 }, // Gap (-1)
+                { id: 6, colaborador_id: 1, competencia_id: 6, nivel_atual: 3 },
+                { id: 7, colaborador_id: 1, competencia_id: 7, nivel_atual: 4 },
+                { id: 8, colaborador_id: 2, competencia_id: 1, nivel_atual: 1 },
+                { id: 9, colaborador_id: 2, competencia_id: 2, nivel_atual: 1 },
+                { id: 10, colaborador_id: 3, competencia_id: 9, nivel_atual: 4 }
+            ]
+        };
+
+        // --- APP STATE ---
+        let supabaseClient = null;
+        let isOnlineSupabase = false;
+        
+        let dbData = {
+            departamentos: [],
+            categorias: [],
+            competencias: [],
+            funcoes: [],
+            requisitos: [],
+            colaboradores: [],
+            avaliacoes: []
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            lucide.createIcons();
+            loadSavedConfigAndInit();
+        };
+
+        async function loadSavedConfigAndInit() {
+            const savedUrl = localStorage.getItem('schmitt_sp_url') || '';
+            const savedKey = localStorage.getItem('schmitt_sp_key') || '';
+
+            document.getElementById('supabase-url-input').value = savedUrl;
+            document.getElementById('supabase-key-input').value = savedKey;
+
+            if (savedUrl && savedKey) {
+                await tryConnectSupabase(savedUrl, savedKey);
+            } else {
+                useLocalFallbackData();
+            }
         }
 
-        if (data.length === 0) {
-            lista.innerHTML = '<li>Sem registos encontrados.</li>';
-            return;
+        async function tryConnectSupabase(url, key) {
+            try {
+                updateStatusBadge('connecting', 'A Ligar ao Supabase...');
+                supabaseClient = window.supabase.createClient(url, key);
+                
+                // Test connection by fetching departamentos table
+                const { data, error } = await supabaseClient.from('departamentos').select('*');
+                
+                if (error) throw error;
+
+                isOnlineSupabase = true;
+                updateStatusBadge('online', 'Supabase Ligado (Ao Vivo)');
+                await fetchAllDataFromSupabase();
+
+            } catch (err) {
+                console.warn('Erro ao ligar ao Supabase, a usar dados locais:', err);
+                isOnlineSupabase = false;
+                updateStatusBadge('offline', 'Modo Local (Falha Supabase)');
+                useLocalFallbackData();
+            }
         }
 
-        data.forEach(registo => {
-            const li = document.createElement('li');
-            li.innerHTML = `<strong>${registo.nome}</strong>: ${registo.descricao || 'Sem descrição'}`;
-            lista.appendChild(li);
-        });
-    }
+        function useLocalFallbackData() {
+            isOnlineSupabase = false;
+            dbData.departamentos = JSON.parse(JSON.stringify(MOCK_DATA.departamentos));
+            dbData.categorias = JSON.parse(JSON.stringify(MOCK_DATA.categorias_competencia));
+            dbData.competencias = JSON.parse(JSON.stringify(MOCK_DATA.competencias));
+            dbData.funcoes = JSON.parse(JSON.stringify(MOCK_DATA.funcoes));
+            dbData.requisitos = JSON.parse(JSON.stringify(MOCK_DATA.requisitos_funcao));
+            dbData.colaboradores = JSON.parse(JSON.stringify(MOCK_DATA.colaboradores));
+            dbData.avaliacoes = JSON.parse(JSON.stringify(MOCK_DATA.avaliacoes_colaborador));
 
-    // Função para inserir um novo registo na base de dados
-    async function inserirRegisto() {
-        const nome = document.getElementById('inputNome').value;
-        const descricao = document.getElementById('inputDesc').value;
-
-        if (!nome) {
-            alert('Por favor, preenche o campo do nome.');
-            return;
+            renderAllUI();
         }
 
-        const { error } = await _supabase
-            .from('registos')
-            .insert([{ nome: nome, descricao: descricao }]);
+        async function fetchAllDataFromSupabase() {
+            try {
+                const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes] = await Promise.all([
+                    supabaseClient.from('departamentos').select('*'),
+                    supabaseClient.from('categorias_competencia').select('*'),
+                    supabaseClient.from('competencias').select('*'),
+                    supabaseClient.from('funcoes').select('*'),
+                    supabaseClient.from('requisitos_funcao').select('*'),
+                    supabaseClient.from('colaboradores').select('*'),
+                    supabaseClient.from('avaliacoes_colaborador').select('*')
+                ]);
 
-        if (error) {
-            console.error('Erro ao inserir:', error);
-            alert('Erro ao guardar o registo.');
-        } else {
-            document.getElementById('inputNome').value = '';
-            document.getElementById('inputDesc').value = '';
-            carregarRegistos(); // Atualiza a lista automaticamente
+                dbData.departamentos = dRes.data || [];
+                dbData.categorias = cCatRes.data || [];
+                dbData.competencias = cCompRes.data || [];
+                dbData.funcoes = fRes.data || [];
+                dbData.requisitos = rRes.data || [];
+                dbData.colaboradores = colRes.data || [];
+                dbData.avaliacoes = aRes.data || [];
+
+                renderAllUI();
+            } catch (e) {
+                console.error("Erro a carregar tabelas do Supabase:", e);
+            }
         }
-    }
 
-    // Executar ao carregar a página
-    carregarRegistos();
-</script>
+        function saveSupabaseConfig() {
+            const url = document.getElementById('supabase-url-input').value.trim();
+            const key = document.getElementById('supabase-key-input').value.trim();
 
+            if (!url || !key) {
+                alert('Por favor preencha a URL e a Anon Key do Supabase.');
+                return;
+            }
+
+            localStorage.setItem('schmitt_sp_url', url);
+            localStorage.setItem('schmitt_sp_key', key);
+            tryConnectSupabase(url, key);
+        }
+
+        function resetToLocalData() {
+            localStorage.removeItem('schmitt_sp_url');
+            localStorage.removeItem('schmitt_sp_key');
+            document.getElementById('supabase-url-input').value = '';
+            document.getElementById('supabase-key-input').value = '';
+            updateStatusBadge('offline', 'Modo Demonstrativo (Local)');
+            useLocalFallbackData();
+        }
+
+        function updateStatusBadge(state, text) {
+            const badge = document.getElementById('connection-status-badge');
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = text;
+
+            if (state === 'online') {
+                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            } else if (state === 'connecting') {
+                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30";
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30";
+            }
+        }
+
+        // --- UI RENDERERS ---
+        function renderAllUI() {
+            updateOverviewStats();
+            populateDropdownFilters();
+            renderMatrixTable();
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+            populateFormDropdowns();
+        }
+
+        function updateOverviewStats() {
+            document.getElementById('stat-dept-count').innerText = dbData.departamentos.length;
+            document.getElementById('stat-comp-count').innerText = dbData.competencias.length;
+            document.getElementById('stat-func-count').innerText = dbData.funcoes.length;
+            document.getElementById('stat-colab-count').innerText = dbData.colaboradores.length;
+        }
+
+        function populateDropdownFilters() {
+            const deptSelect = document.getElementById('filter-dept');
+            const catSelect = document.getElementById('filter-cat');
+
+            deptSelect.innerHTML = `<option value="ALL">Todos os Departamentos</option>` +
+                dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+
+            catSelect.innerHTML = `<option value="ALL">Todas as Categorias</option>` +
+                dbData.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        }
+
+        function renderMatrixTable() {
+            const thead = document.getElementById('matrix-thead');
+            const tbody = document.getElementById('matrix-tbody');
+            const deptFilter = document.getElementById('filter-dept').value;
+            const catFilter = document.getElementById('filter-cat').value;
+            const search = document.getElementById('filter-search').value.toLowerCase();
+
+            // Active Roles
+            let activeRoles = dbData.funcoes;
+            if (deptFilter !== 'ALL') {
+                activeRoles = activeRoles.filter(f => f.departamento_id == deptFilter);
+            }
+
+            // Header
+            thead.innerHTML = `
+                <tr>
+                    <th class="p-3">Categoria</th>
+                    <th class="p-3">Competência</th>
+                    ${activeRoles.map(r => `<th class="p-3 text-center min-w-[100px]">${r.designacao}</th>`).join('')}
+                </tr>
+            `;
+
+            // Filtered Competencies
+            let filteredComps = dbData.competencias.filter(c => {
+                const catObj = dbData.categorias.find(cat => cat.id == c.categoria_id);
+                const matchDept = (deptFilter === 'ALL' || (catObj && catObj.departamento_id == deptFilter));
+                const matchCat = (catFilter === 'ALL' || c.categoria_id == catFilter);
+                const matchSearch = c.nome.toLowerCase().includes(search);
+                return matchDept && matchCat && matchSearch;
+            });
+
+            if (filteredComps.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${activeRoles.length + 2}" class="p-6 text-center text-slate-400">Nenhum registo encontrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredComps.map(c => {
+                const catObj = dbData.categorias.find(cat => cat.id == c.categoria_id) || { nome: 'Geral' };
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 text-slate-500 font-medium text-[11px]">${catObj.nome}</td>
+                        <td class="p-3 font-semibold text-slate-800">${c.nome}</td>
+                        ${activeRoles.map(role => {
+                            const req = dbData.requisitos.find(r => r.funcao_id == role.id && r.competencia_id == c.id);
+                            const lvl = req ? req.nivel_requerido : 0;
+                            return `<td class="p-3 text-center">${getLevelBadge(lvl)}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderColaboradorDropdown() {
+            const select = document.getElementById('colab-select');
+            select.innerHTML = dbData.colaboradores.map(c => `
+                <option value="${c.id}">${c.nome}</option>
+            `).join('');
+        }
+
+        function renderColaboradorProfile() {
+            const colabId = document.getElementById('colab-select').value;
+            const card = document.getElementById('colab-info-card');
+            const tbody = document.getElementById('colab-skills-tbody');
+
+            if (!colabId) {
+                card.innerHTML = `<span class="text-slate-400 text-xs">Nenhum colaborador selecionado.</span>`;
+                tbody.innerHTML = '';
+                return;
+            }
+
+            const colab = dbData.colaboradores.find(c => c.id == colabId);
+            const funcao = dbData.funcoes.find(f => f.id == colab.funcao_atual_id) || { designacao: 'Não Definida' };
+            const dept = dbData.departamentos.find(d => d.id == colab.departamento_id) || { nome: 'N/A' };
+
+            // Calculate overall alignment
+            const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
+            let totalReq = 0, achieved = 0, gaps = 0;
+
+            dbData.competencias.forEach(comp => {
+                const req = dbData.requisitos.find(r => r.funcao_id == colab.funcao_atual_id && r.competencia_id == comp.id);
+                const reqLvl = req ? req.nivel_requerido : 0;
+                
+                if (reqLvl > 0) {
+                    totalReq += reqLvl;
+                    const evalObj = colabEvals.find(e => e.competencia_id == comp.id);
+                    const currentLvl = evalObj ? evalObj.nivel_atual : 0;
+                    achieved += Math.min(currentLvl, reqLvl);
+                    if (currentLvl < reqLvl) gaps++;
+                }
+            });
+
+            const matchPct = totalReq > 0 ? Math.round((achieved / totalReq) * 100) : 100;
+
+            card.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-schmitt-blue text-white font-bold flex items-center justify-center text-sm">
+                        ${colab.nome.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm">${colab.nome}</h3>
+                        <p class="text-xs text-slate-500">${funcao.designacao} • ${dept.nome}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 text-xs">
+                    <div class="text-right">
+                        <span class="text-slate-500 block">Conformidade Global</span>
+                        <span class="font-bold text-base text-schmitt-darkBlue">${matchPct}%</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-500 block">GAPs / Necessidades</span>
+                        <span class="font-bold text-base ${gaps > 0 ? 'text-amber-600' : 'text-emerald-600'}">${gaps}</span>
+                    </div>
+                </div>
+            `;
+
+            // Skill Gap Table
+            tbody.innerHTML = dbData.competencias.map(comp => {
+                const catObj = dbData.categorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
+                const req = dbData.requisitos.find(r => r.funcao_id == colab.funcao_atual_id && r.competencia_id == comp.id);
+                const reqLvl = req ? req.nivel_requerido : 0;
+
+                const evalObj = colabEvals.find(e => e.competencia_id == comp.id);
+                const currLvl = evalObj ? evalObj.nivel_atual : 0;
+                const diff = currLvl - reqLvl;
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-slate-500 text-[11px]">${catObj.nome}</td>
+                        <td class="p-3 font-semibold text-slate-800">${comp.nome}</td>
+                        <td class="p-3 text-center">${getLevelBadge(reqLvl)}</td>
+                        <td class="p-3 text-center">${getLevelBadge(currLvl)}</td>
+                        <td class="p-3 text-center">${getGapStateBadge(diff, reqLvl)}</td>
+                        <td class="p-3 text-xs text-slate-600">${getGapActionPlan(diff, reqLvl)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function populateFormDropdowns() {
+            const colabSelect = document.getElementById('form-colab-id');
+            colabSelect.innerHTML = dbData.colaboradores.map(c => `
+                <option value="${c.id}">${c.nome}</option>
+            `).join('');
+
+            loadFormCompetenciesForColab();
+        }
+
+        function loadFormCompetenciesForColab() {
+            const compSelect = document.getElementById('form-comp-id');
+            compSelect.innerHTML = dbData.competencias.map(c => `
+                <option value="${c.id}">${c.nome}</option>
+            `).join('');
+        }
+
+        async function handleSaveEvaluation(e) {
+            e.preventDefault();
+            const colabId = parseInt(document.getElementById('form-colab-id').value, 10);
+            const compId = parseInt(document.getElementById('form-comp-id').value, 10);
+            const level = parseInt(document.getElementById('form-level').value, 10);
+            const feedback = document.getElementById('form-feedback');
+
+            if (isOnlineSupabase && supabaseClient) {
+                try {
+                    // Upsert into Supabase avaliacoes_colaborador table
+                    const { error } = await supabaseClient
+                        .from('avaliacoes_colaborador')
+                        .upsert({ 
+                            colaborador_id: colabId, 
+                            competencia_id: compId, 
+                            nivel_atual: level 
+                        }, { onConflict: 'colaborador_id,competencia_id' });
+
+                    if (error) throw error;
+
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    feedback.innerText = "✓ Avaliação gravada com sucesso no Supabase PostgreSQL!";
+                    feedback.classList.remove('hidden');
+
+                    await fetchAllDataFromSupabase();
+                } catch (err) {
+                    console.error('Erro ao guardar no Supabase:', err);
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200";
+                    feedback.innerText = "Erro ao guardar no Supabase: " + err.message;
+                    feedback.classList.remove('hidden');
+                }
+            } else {
+                // Local state update
+                const existingIndex = dbData.avaliacoes.findIndex(a => a.colaborador_id === colabId && a.competencia_id === compId);
+                if (existingIndex >= 0) {
+                    dbData.avaliacoes[existingIndex].nivel_atual = level;
+                } else {
+                    dbData.avaliacoes.push({ id: Date.now(), colaborador_id: colabId, competencia_id: compId, nivel_atual: level });
+                }
+
+                feedback.className = "p-3 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200";
+                feedback.innerText = "✓ Avaliação guardada localmente (Modo Demonstrativo).";
+                feedback.classList.remove('hidden');
+
+                renderColaboradorProfile();
+            }
+
+            setTimeout(() => feedback.classList.add('hidden'), 4000);
+        }
+
+        // --- HELPER BADGE FUNCTIONS ---
+        function getLevelBadge(lvl) {
+            if (lvl === 0) return `<span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[11px] font-bold">0 (N/A)</span>`;
+            if (lvl === 1) return `<span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[11px] font-bold">1 - Básico</span>`;
+            if (lvl === 2) return `<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px] font-bold">2 - Autônomo</span>`;
+            if (lvl === 3) return `<span class="px-2 py-0.5 bg-schmitt-blue text-white rounded text-[11px] font-bold">3 - Domínio</span>`;
+            return `<span class="px-2 py-0.5 bg-schmitt-darkBlue text-white rounded text-[11px] font-bold">4 - Perito</span>`;
+        }
+
+        function getGapStateBadge(diff, reqLvl) {
+            if (reqLvl === 0) return `<span class="text-slate-400 font-medium">-</span>`;
+            if (diff >= 0) return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">Conforme (+${diff})</span>`;
+            return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold text-[11px]">GAP (${diff})</span>`;
+        }
+
+        function getGapActionPlan(diff, reqLvl) {
+            if (reqLvl === 0) return `<span class="text-slate-400">Requisito não aplicável.</span>`;
+            if (diff >= 0) return `<span class="text-emerald-700 font-medium">Competência consolidada.</span>`;
+            if (diff === -1) return `<span class="text-amber-700 font-semibold">Formação On-the-Job / Acompanhamento.</span>`;
+            return `<span class="text-red-600 font-bold">Formação Específica Necessária.</span>`;
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId) {
+            ['matrix', 'colab', 'eval', 'config'].forEach(t => {
+                const page = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`btn-tab-${t}`);
+                if (`tab-${t}` === tabId) {
+                    page.classList.remove('hidden');
+                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition";
+                } else {
+                    page.classList.add('hidden');
+                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition";
+                }
+            });
+        }
+    </script>
 </body>
+</html>
 </html>
