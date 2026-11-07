@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Supabase + PostgreSQL</title>
+    <!-- Importar o cliente do Supabase via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #efefef; color: #333; padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { color: #23308E; margin-top: 0; }
+        input, button { padding: 10px; margin: 5px 0 15px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #0072bc; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #005a99; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f9f9f9; padding: 10px; margin-bottom: 8px; border-left: 4px solid #0072bc; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registo de Dados (Supabase + PostgreSQL)</h2>
+    
+    <!-- Formulário de Inserção -->
+    <input type="text" id="inputNome" placeholder="Nome do registo...">
+    <input type="text" id="inputDesc" placeholder="Descrição detalhada...">
+    <button onclick="inserirRegisto()">Guardar na Base de Dados</button>
+
+    <h3>Lista de Registos Atuais</h3>
+    <ul id="listaRegistos">
+        <li>A carregar dados...</li>
+    </ul>
+</div>
+
+<script>
+    // ==========================================
+    // CONFIGURAÇÃO DO SUPABASE (SUBSTITUI AQUI)
+    // ==========================================
+    const SUPABASE_URL = 'https://gzcofcwatkvzulzqmofv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Blk724DEiYhPTQhaxXn5GA_OLDB9yOU';
+    
+    const { createClient } = supabase;
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Função para carregar e listar os dados do PostgreSQL
+    async function carregarRegistos() {
+        const { data, error } = await _supabase
+            .from('registos')
+            .select('*')
+            .order('id', { ascending: false });
+
+        const lista = document.getElementById('listaRegistos');
+        lista.innerHTML = '';
+
+        if (error) {
+            console.error('Erro ao buscar dados:', error);
+            lista.innerHTML = '<li>Erro ao carregar dados. Verifica as tuas credenciais.</li>';
+            return;
+        }
+
+        if (data.length === 0) {
+            lista.innerHTML = '<li>Sem registos encontrados.</li>';
+            return;
+        }
+
+        data.forEach(registo => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${registo.nome}</strong>: ${registo.descricao || 'Sem descrição'}`;
+            lista.appendChild(li);
+        });
+    }
+
+    // Função para inserir um novo registo na base de dados
+    async function inserirRegisto() {
+        const nome = document.getElementById('inputNome').value;
+        const descricao = document.getElementById('inputDesc').value;
+
+        if (!nome) {
+            alert('Por favor, preenche o campo do nome.');
+            return;
+        }
+
+        const { error } = await _supabase
+            .from('registos')
+            .insert([{ nome: nome, descricao: descricao }]);
+
+        if (error) {
+            console.error('Erro ao inserir:', error);
+            alert('Erro ao guardar o registo.');
+        } else {
+            document.getElementById('inputNome').value = '';
+            document.getElementById('inputDesc').value = '';
+            carregarRegistos(); // Atualiza a lista automaticamente
+        }
+    }
+
+    // Executar ao carregar a página
+    carregarRegistos();
+</script>
+
+</body>
+</html>
