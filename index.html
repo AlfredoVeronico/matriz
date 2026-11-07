@@ -150,7 +150,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
-                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos. (Clica numa célula para editar o requisito)</p>
+                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos. (Clica numa célula para editar)</p>
                     </div>
 
                     <!-- Filters -->
@@ -835,15 +835,27 @@
             return `<span class="text-red-600 font-bold">Formação Específica Necessária.</span>`;
         }
 
-        
-        async function handleCellClick(funcaoId, competenciaId, currentLvl) {
-            const newLvlStr = prompt("Editar Nível Requerido (0 a 4):", currentLvl);
-            if (newLvlStr === null) return;
-            const newLvl = parseInt(newLvlStr, 10);
-            if (isNaN(newLvl) || newLvl < 0 || newLvl > 4) {
-                alert("Por favor insira um valor válido entre 0 e 4.");
-                return;
-            }
+        // --- CUSTOM MODAL STATE & HANDLERS ---
+        let currentEditingCell = null;
+
+        function handleCellClick(funcaoId, competenciaId, currentLvl) {
+            currentEditingCell = { funcaoId, competenciaId };
+            const select = document.getElementById('modal-level-select');
+            select.value = currentLvl;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            currentEditingCell = null;
+        }
+
+        async function confirmCustomModal() {
+            if (!currentEditingCell) return;
+            const { funcaoId, competenciaId } = currentEditingCell;
+            const newLvl = parseInt(document.getElementById('modal-level-select').value, 10);
+            closeCustomModal();
 
             if (isOnlineSupabase && supabaseClient) {
                 try {
@@ -894,5 +906,36 @@
             });
         }
     </script>
+
+    <!-- Custom Modal Dialog for Editing Requirement Level -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
+                    <span>Editar Nível Requerido</span>
+                </h3>
+                <button onclick="closeCustomModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <label class="block text-xs font-semibold text-slate-600">Selecione o nível exigido (0 a 4):</label>
+                <select id="modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
+                    <option value="0">○ 0 — Não aplicável</option>
+                    <option value="1">◔ 1 — Em formação</option>
+                    <option value="2">◑ 2 — Faz com ajuda</option>
+                    <option value="3">◕ 3 — Independente</option>
+                    <option value="4">● 4 — Formador</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                    Cancelar
+                </button>
+                <button id="modal-confirm-btn" onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
