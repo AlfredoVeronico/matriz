@@ -644,6 +644,13 @@
                 return matchDept && matchCat && matchSearch;
             });
 
+            // Sort competencies by category name so they are grouped together
+            filteredComps.sort((a, b) => {
+                const catA = (dbData.categorias.find(cat => cat.id == a.categoria_id) || { nome: '' }).nome;
+                const catB = (dbData.categorias.find(cat => cat.id == b.categoria_id) || { nome: '' }).nome;
+                return catA.localeCompare(catB);
+            });
+
             if (filteredComps.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${activeRoles.length + 2}" class="p-6 text-center text-slate-400">Nenhum registo encontrado.</td></tr>`;
                 return;
@@ -818,7 +825,8 @@
             setTimeout(() => feedback.classList.add('hidden'), 4000);
         }
 
-        // --- SVG UNIFORM LEVEL BADGES ---
+                // --- HELPER BADGE FUNCTIONS (NOVA ESCALAS COM SÍMBOLOS CIRCULARES) ---
+                // --- SVG UNIFORM LEVEL BADGES ---
         function getSvgCircle(nivel) {
             const svgs = {
                 0: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="0 — Não aplicável"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/></svg>',
@@ -849,6 +857,7 @@
             return `<span class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
                         ${svg} <span>${labels[nivel] || nivel}</span>
                     </span>`;
+        }
         }
 
         function getGapStateBadge(diff, reqLvl) {
@@ -881,5 +890,6 @@
     </script>
 </body>
 </html>
+
 
 
