@@ -341,10 +341,16 @@
                 </div>
 
                 <form id="form-eval" onsubmit="handleSaveEvaluation(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Colaborador</label>
-                            <select id="form-colab-id" onchange="loadFormCompetenciesForColab()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                            <select id="form-colab-id" onchange="onFormColabChange()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
+                            <select id="form-cat-id" onchange="loadFormCompetenciesForCategory()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
                                 <!-- Populated dynamically -->
                             </select>
                         </div>
@@ -628,13 +634,15 @@
                     console.error('Erro ao carregar categorias:', error);
                     return;
                 }
+                categorias.sort((a, b) => a.nome.localeCompare(b.nome));
                 selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
                     categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
             } else {
-                let categorias = dbData.categorias;
+                let categorias = [...dbData.categorias];
                 if (departamentoId && departamentoId !== 'ALL') {
                     categorias = categorias.filter(c => c.departamento_id == departamentoId);
                 }
+                categorias.sort((a, b) => a.nome.localeCompare(b.nome));
                 selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
                     categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
             }
@@ -895,8 +903,10 @@
             `;
 
             const deptCategorias = dbData.categorias.filter(cat => cat.departamento_id == deptId);
+            deptCategorias.sort((a, b) => a.nome.localeCompare(b.nome));
             const deptCatIds = deptCategorias.map(cat => cat.id);
             const deptCompetencias = dbData.competencias.filter(comp => deptCatIds.includes(comp.categoria_id));
+            deptCompetencias.sort((a, b) => a.nome.localeCompare(b.nome));
 
             tbody.innerHTML = deptCompetencias.map(comp => {
                 const catObj = deptCategorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
@@ -922,28 +932,48 @@
 
         function populateFormDropdowns() {
             const colabSelect = document.getElementById('form-colab-id');
-            const compSelect = document.getElementById('form-comp-id');
             const currentColab = colabSelect.value;
-            const currentComp = compSelect.value;
 
-            colabSelect.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            const sortedColabs = [...dbData.colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
+            colabSelect.innerHTML = sortedColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            
             if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
                 colabSelect.value = currentColab;
+            } else if (sortedColabs.length > 0) {
+                colabSelect.selectedIndex = 0;
             }
 
-            loadFormCompetenciesForColab();
-            if (Array.from(compSelect.options).some(o => o.value === currentComp)) {
-                compSelect.value = currentComp;
-            }
+            onFormColabChange();
         }
 
-        function loadFormCompetenciesForColab() {
-            const compSelect = document.getElementById('form-comp-id');
-            const currentComp = compSelect.value;
-            compSelect.innerHTML = dbData.competencias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            if (Array.from(compSelect.options).some(o => o.value === currentComp)) {
-                compSelect.value = currentComp;
+        function onFormColabChange() {
+            const colabId = document.getElementById('form-colab-id').value;
+            const colab = dbData.colaboradores.find(c => c.id == colabId);
+            const deptId = colab ? colab.departamento_id : null;
+
+            const catSelect = document.getElementById('form-cat-id');
+            let deptCats = dbData.categorias;
+            if (deptId) {
+                deptCats = deptCats.filter(cat => cat.departamento_id == deptId);
             }
+            deptCats.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            catSelect.innerHTML = deptCats.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
+            
+            loadFormCompetenciesForCategory();
+        }
+
+        function loadFormCompetenciesForCategory() {
+            const catId = document.getElementById('form-cat-id').value;
+            const compSelect = document.getElementById('form-comp-id');
+
+            let comps = dbData.competencias;
+            if (catId) {
+                comps = comps.filter(c => c.categoria_id == catId);
+            }
+            comps.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            compSelect.innerHTML = comps.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
         }
 
         function getSvgCircle(nivel, size = 18) {
