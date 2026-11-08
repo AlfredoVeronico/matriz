@@ -294,7 +294,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
-                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo para cálculo de necessidades de formação.</p>
+                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação.</p>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -842,14 +842,22 @@
             }
 
             const colab = dbData.colaboradores.find(c => c.id == colabId);
-            const funcao = dbData.funcoes.find(f => f.id == colab.funcao_atual_id) || { designacao: 'Não Definida' };
-            const dept = dbData.departamentos.find(d => d.id == colab.departamento_id) || { nome: 'N/A' };
+            const deptId = colab.departamento_id;
+            const dept = dbData.departamentos.find(d => d.id == deptId) || { nome: 'N/A' };
+
+            const deptFuncoes = dbData.funcoes.filter(f => f.departamento_id == deptId);
+            const currentFuncaoIndex = deptFuncoes.findIndex(f => f.id == colab.funcao_atual_id);
+            
+            const funcaoAtual = currentFuncaoIndex >= 0 ? deptFuncoes[currentFuncaoIndex] : { id: colab.funcao_atual_id, designacao: 'Atual' };
+            const funcaoAcima = (currentFuncaoIndex >= 0 && currentFuncaoIndex + 1 < deptFuncoes.length) 
+                ? deptFuncoes[currentFuncaoIndex + 1] 
+                : funcaoAtual;
 
             const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
             let totalReq = 0, achieved = 0, gaps = 0;
 
             dbData.competencias.forEach(comp => {
-                const req = dbData.requisitos.find(r => r.funcao_id == colab.funcao_atual_id && r.competencia_id == comp.id);
+                const req = dbData.requisitos.find(r => r.funcao_id == funcaoAcima.id && r.competencia_id == comp.id);
                 const reqLvl = req ? req.nivel_requerido : 0;
                 
                 if (reqLvl > 0) {
@@ -870,7 +878,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm">${colab.nome}</h3>
-                        <p class="text-xs text-slate-500">${funcao.designacao} • ${dept.nome}</p>
+                        <p class="text-xs text-slate-500">Atual: <b class="text-slate-700">${funcaoAtual.designacao}</b> ➔ Alvo (Seguinte): <b class="text-emerald-700">${funcaoAcima.designacao}</b> • ${dept.nome}</p>
                     </div>
                 </div>
 
@@ -886,9 +894,13 @@
                 </div>
             `;
 
-            tbody.innerHTML = dbData.competencias.map(comp => {
-                const catObj = dbData.categorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
-                const req = dbData.requisitos.find(r => r.funcao_id == colab.funcao_atual_id && r.competencia_id == comp.id);
+            const deptCategorias = dbData.categorias.filter(cat => cat.departamento_id == deptId);
+            const deptCatIds = deptCategorias.map(cat => cat.id);
+            const deptCompetencias = dbData.competencias.filter(comp => deptCatIds.includes(comp.categoria_id));
+
+            tbody.innerHTML = deptCompetencias.map(comp => {
+                const catObj = deptCategorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
+                const req = dbData.requisitos.find(r => r.funcao_id == funcaoAcima.id && r.competencia_id == comp.id);
                 const reqLvl = req ? req.nivel_requerido : 0;
 
                 const evalObj = colabEvals.find(e => e.competencia_id == comp.id);
@@ -899,8 +911,8 @@
                     <tr class="hover:bg-slate-50">
                         <td class="p-3 text-slate-500 text-[11px]">${catObj.nome}</td>
                         <td class="p-3 font-semibold text-slate-800">${comp.nome}</td>
-                        <td class="p-3 text-center">${getLevelBadge(reqLvl, true)}</td>
-                        <td class="p-3 text-center">${getLevelBadge(currLvl, true)}</td>
+                        <td class="p-3 text-center" title="Nível requerido para ${funcaoAcima.designacao}">${getLevelBadge(reqLvl, false)}</td>
+                        <td class="p-3 text-center" title="Nível atual do colaborador">${getLevelBadge(currLvl, false)}</td>
                         <td class="p-3 text-center">${getGapStateBadge(diff, reqLvl)}</td>
                         <td class="p-3 text-xs text-slate-600">${getGapActionPlan(diff, reqLvl)}</td>
                     </tr>
