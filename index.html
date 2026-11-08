@@ -59,7 +59,7 @@
                         <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
                             <span>Matriz de Competências</span>
                         </h1>
-                        <p class="text-xs text-slate-300">Schmitt + Sohn Elevadores — SAV & Montagem</p>
+                        
                     </div>
                 </div>
 
@@ -327,73 +327,7 @@
 
     <!-- SCRIPT APPLICATION CORE LOGIC -->
     <script>
-        // --- MOCK LOCAL DATASET (FALLBACK WORK OUT-OF-THE-BOX) ---
-        const MOCK_DATA = {
-            departamentos: [
-                { id: 1, nome: "SAV - Manutenção & Assistência" },
-                { id: 2, nome: "Montagem de Elevadores & Escadas" }
-            ],
-            categorias_competencia: [
-                { id: 1, departamento_id: 1, nome: "Gerais & Atendimento" },
-                { id: 2, departamento_id: 1, nome: "Ferramentas Digitais" },
-                { id: 3, departamento_id: 1, nome: "Sistemas Elétricos & Manobra" },
-                { id: 4, departamento_id: 1, nome: "Segurança & HST" },
-                { id: 5, departamento_id: 2, nome: "Estruturas & Mecânica" },
-                { id: 6, departamento_id: 2, nome: "Escadas Rolantes (NA)" }
-            ],
-            competencias: [
-                { id: 1, categoria_id: 1, nome: "Organização e Métodos de Trabalho", codigo_coluna: "G1", sub_categoria: "" },
-                { id: 2, categoria_id: 1, nome: "Comunicação e Atendimento ao Cliente", codigo_coluna: "G2", sub_categoria: "" },
-                { id: 3, categoria_id: 2, nome: "Portal do Técnico / S+ App", codigo_coluna: "D1", sub_categoria: "" },
-                { id: 4, categoria_id: 2, nome: "Consulta de Esquemas Elétricos no Tablet", codigo_coluna: "D2", sub_categoria: "" },
-                { id: 5, categoria_id: 3, nome: "Diagnóstico de Avarias em Manobras", codigo_coluna: "T1", sub_categoria: "" },
-                { id: 6, categoria_id: 3, nome: "Variadores de Frequência (VVVF)", codigo_coluna: "T2", sub_categoria: "" },
-                { id: 7, categoria_id: 4, nome: "Trabalho Seguro em Altura / Poço", codigo_coluna: "S1", sub_categoria: "" },
-                { id: 8, categoria_id: 5, nome: "Aplicação de Guias e Suportes de Cabina", codigo_coluna: "M1", sub_categoria: "" },
-                { id: 9, categoria_id: 6, nome: "Alinhamento de Treliça e Degraus Escada", codigo_coluna: "E1", sub_categoria: "" }
-            ],
-            funcoes: [
-                { id: 1, departamento_id: 1, codigo_cargo: 0, designacao: "Aprendiz SAV", experiencia_requerida: "0-6 meses", bonificacao: "" },
-                { id: 2, departamento_id: 1, codigo_cargo: 1, designacao: "Técnico Elevadores 1", experiencia_requerida: "1 ano", bonificacao: "" },
-                { id: 3, departamento_id: 1, codigo_cargo: 2, designacao: "Técnico Oficial", experiencia_requerida: "3 anos", bonificacao: "" },
-                { id: 4, departamento_id: 1, codigo_cargo: 3, designacao: "Técnico Especialista", experiencia_requerida: "5+ anos", bonificacao: "" },
-                { id: 5, departamento_id: 2, codigo_cargo: 1, designacao: "Oficial Montagem 1", experiencia_requerida: "2 anos", bonificacao: "" },
-                { id: 6, departamento_id: 2, codigo_cargo: 3, designacao: "Especialista Escadas (NA)", experiencia_requerida: "4 anos", bonificacao: "" }
-            ],
-            requisitos_funcao: [
-                { id: 1, funcao_id: 1, competencia_id: 1, nivel_requerido: 1 },
-                { id: 2, funcao_id: 1, competencia_id: 2, nivel_requerido: 1 },
-                { id: 3, funcao_id: 1, competencia_id: 3, nivel_requerido: 1 },
-                { id: 4, funcao_id: 1, competencia_id: 5, nivel_requerido: 0 },
-                { id: 5, funcao_id: 3, competencia_id: 1, nivel_requerido: 3 },
-                { id: 6, funcao_id: 3, competencia_id: 2, nivel_requerido: 3 },
-                { id: 7, funcao_id: 3, competencia_id: 3, nivel_requerido: 4 },
-                { id: 8, funcao_id: 3, competencia_id: 4, nivel_requerido: 4 },
-                { id: 9, funcao_id: 3, competencia_id: 5, nivel_requerido: 3 },
-                { id: 10, funcao_id: 3, competencia_id: 6, nivel_requerido: 3 },
-                { id: 11, funcao_id: 3, competencia_id: 7, nivel_requerido: 4 },
-                { id: 12, funcao_id: 6, competencia_id: 8, nivel_requerido: 2 },
-                { id: 13, funcao_id: 6, competencia_id: 9, nivel_requerido: 4 },
-                { id: 14, funcao_id: 6, competencia_id: 7, nivel_requerido: 4 }
-            ],
-            colaboradores: [
-                { id: 1, nome: "António Silva", funcao_atual_id: 3, departamento_id: 1, email: "asilva@schmitt.pt" },
-                { id: 2, nome: "Carlos Santos", funcao_atual_id: 1, departamento_id: 1, email: "csantos@schmitt.pt" },
-                { id: 3, nome: "Manuel Ferreira", funcao_atual_id: 6, departamento_id: 2, email: "mferreira@schmitt.pt" }
-            ],
-            avaliacoes_colaborador: [
-                { id: 1, colaborador_id: 1, competencia_id: 1, nivel_atual: 3 },
-                { id: 2, colaborador_id: 1, competencia_id: 2, nivel_atual: 3 },
-                { id: 3, colaborador_id: 1, competencia_id: 3, nivel_atual: 4 },
-                { id: 4, colaborador_id: 1, competencia_id: 4, nivel_atual: 3 },
-                { id: 5, colaborador_id: 1, competencia_id: 5, nivel_atual: 2 },
-                { id: 6, colaborador_id: 1, competencia_id: 6, nivel_atual: 3 },
-                { id: 7, colaborador_id: 1, competencia_id: 7, nivel_atual: 4 },
-                { id: 8, colaborador_id: 2, competencia_id: 1, nivel_atual: 1 },
-                { id: 9, colaborador_id: 2, competencia_id: 2, nivel_atual: 1 },
-                { id: 10, colaborador_id: 3, competencia_id: 9, nivel_atual: 4 }
-            ]
-        };
+
 
         // --- APP STATE ---
         let supabaseClient = null;
