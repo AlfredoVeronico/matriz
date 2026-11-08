@@ -576,29 +576,53 @@
             carregarCategoriasPorDepartamento(deptSelect.value);
         }
 
-        function populateDashboardDropdowns() {
+function populateDashboardDropdowns() {
             const colabSelect = document.getElementById('dash-colab-select');
-            const roleSelect = document.getElementById('dash-target-role-select');
             const currentColab = colabSelect.value;
-            const currentRole = roleSelect.value;
 
             colabSelect.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
                 colabSelect.value = currentColab;
             }
 
-            roleSelect.innerHTML = dbData.funcoes.map(f => `<option value="${f.id}">${f.designacao}</option>`).join('');
-            if (Array.from(roleSelect.options).some(o => o.value === currentRole)) {
-                roleSelect.value = currentRole;
-            } else if (colabSelect.value) {
-                // Selecionar por defeito a função atual do colaborador selecionado
-                const activeColab = dbData.colaboradores.find(c => c.id == colabSelect.value);
-                if (activeColab && activeColab.funcao_atual_id) {
-                    roleSelect.value = activeColab.funcao_atual_id;
-                }
-            }
+            updateDashboardRolesForSelectedColab();
         }
 
+        function updateDashboardRolesForSelectedColab() {
+            const colabSelect = document.getElementById('dash-colab-select');
+            const roleSelect = document.getElementById('dash-target-role-select');
+            const currentRole = roleSelect.value;
+
+            const activeColab = dbData.colaboradores.find(c => c.id == colabSelect.value);
+            const deptId = activeColab ? activeColab.departamento_id : null;
+
+            // Filtra as funções apenas para o departamento do colaborador selecionado
+            let validRoles = dbData.funcoes;
+            if (deptId) {
+                validRoles = validRoles.filter(f => f.departamento_id == deptId);
+            }
+
+            roleSelect.innerHTML = validRoles.map(f => `<option value="${f.id}">${f.designacao}</option>`).join('');
+
+            // Mantém a seleção anterior se existir nas opções filtradas, senão seleciona a função atual do colaborador
+            if (currentRole && Array.from(roleSelect.options).some(o => o.value == currentRole)) {
+                roleSelect.value = currentRole;
+            } else if (activeColab && activeColab.funcao_atual_id && Array.from(roleSelect.options).some(o => o.value == activeColab.funcao_atual_id)) {
+                roleSelect.value = activeColab.funcao_atual_id;
+            } else if (roleSelect.options.length > 0) {
+                roleSelect.selectedIndex = 0;
+            }
+
+            renderDashboard();
+        }
+
+        function onDashboardColabChange() {
+            updateDashboardRolesForSelectedColab();
+        }
+
+
+        
+        
         function onDashboardColabChange() {
             const colabSelect = document.getElementById('dash-colab-select');
             const roleSelect = document.getElementById('dash-target-role-select');
