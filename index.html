@@ -475,16 +475,26 @@
             document.getElementById('stat-colab-count').innerText = dbData.colaboradores.length;
         }
 
-        function populateDropdownFilters() {
+function populateDropdownFilters() {
             const deptSelect = document.getElementById('filter-dept');
-            const currentDept = deptSelect.value || 'ALL';
-
-            deptSelect.innerHTML = `<option value="ALL">Todos os Departamentos</option>` +
-                dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
             
-            if (Array.from(deptSelect.options).some(o => o.value === currentDept)) {
-                deptSelect.value = currentDept;
+            // Se ainda não houver seleção prévia (ou estiver em 'ALL' na abertura inicial), define o primeiro departamento
+            let currentDept = deptSelect.value;
+            if (!currentDept || currentDept === 'ALL' && !deptSelect.dataset.initialized) {
+                if (dbData.departamentos.length > 0) {
+                    currentDept = dbData.departamentos[0].id;
+                }
             }
+
+            deptSelect.innerHTML = dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+            
+            if (Array.from(deptSelect.options).some(o => o.value == currentDept)) {
+                deptSelect.value = currentDept;
+            } else if (dbData.departamentos.length > 0) {
+                deptSelect.value = dbData.departamentos[0].id;
+            }
+
+            deptSelect.dataset.initialized = "true";
             carregarCategoriasPorDepartamento(deptSelect.value);
         }
 
