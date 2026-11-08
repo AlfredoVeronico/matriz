@@ -185,33 +185,56 @@
 
         <!-- TAB 0: DASHBOARD & ANÁLISE DE GAPS -->
         <div id="tab-dashboard" class="space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- 4 Cartões Superiores (Exatamente como na imagem de referência) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Cartão 1: Colaborador em Avaliação -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Colaborador em Análise</span>
-                    <select id="dash-colab-select" onchange="renderDashboard()" class="mt-2 w-full text-base font-bold text-schmitt-blue bg-slate-50 p-2 rounded-xl border border-slate-200 focus:outline-none">
-                        <!-- Populated dynamically -->
-                    </select>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Gaps de Formação Identificados</span>
-                    <h4 id="dash-gap-count" class="text-3xl font-black text-amber-600 mt-1">0</h4>
-                    <p class="text-xs text-slate-500 mt-1">Requisitos exigidos acima do nível atual</p>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Estado de Conformidade</span>
-                    <div id="dash-readiness-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit">
-                        A calcular...
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Colaborador em Avaliação</span>
+                    <div class="mt-2">
+                        <select id="dash-colab-select" onchange="onDashboardColabChange()" class="w-full text-lg font-extrabold text-schmitt-darkBlue bg-transparent focus:outline-none cursor-pointer border-b border-schmitt-blue/30 pb-1">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
-                    <p class="text-xs text-slate-500 mt-2">Comparação com a função atual</p>
+                    <p id="dash-colab-dept" class="text-xs text-slate-500 mt-3">Assistência Técnica ao Domicílio</p>
+                </div>
+
+                <!-- Cartão 2: Cargo Alvo (Análise) -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cargo Alvo (Análise)</span>
+                    <div class="mt-2">
+                        <select id="dash-target-role-select" onchange="renderDashboard()" class="w-full text-lg font-extrabold text-emerald-700 bg-transparent focus:outline-none cursor-pointer border-b border-emerald-300 pb-1">
+                            <!-- Populated dynamically from dbData.funcoes -->
+                        </select>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3">Nível funcional de avaliação</p>
+                </div>
+
+                <!-- Cartão 3: Gaps de Formação -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gaps de Formação</span>
+                    <h4 id="dash-gap-count" class="text-3xl font-black text-amber-600 mt-1">0</h4>
+                    <p class="text-xs text-slate-500 mt-3">Requisitos exigidos acima do nível atual</p>
+                </div>
+
+                <!-- Cartão 4: Prontidão para Promoção -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Prontidão para Promoção</span>
+                    <div class="mt-2">
+                        <div id="dash-readiness-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit">
+                            A calcular...
+                        </div>
+                    </div>
+                    <p id="dash-bonif-text" class="text-xs text-slate-500 mt-3">Bonificação: X</p>
                 </div>
             </div>
 
+            <!-- Gráfico & Gaps em Detalhe -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Gráfico Radar -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i data-lucide="radar" class="w-5 h-5 text-schmitt-blue"></i>
-                        Perfil vs Requisitos da Função
+                        Comparativo por Área de Competência
                     </h3>
                     <div class="relative h-72">
                         <canvas id="radarChart"></canvas>
@@ -523,6 +546,7 @@
         function renderAllUI() {
             updateOverviewStats();
             populateDropdownFilters();
+            populateDashboardDropdowns();
             renderDashboard();
             renderMatrixTable();
             renderColaboradorDropdown();
@@ -550,16 +574,39 @@
             }
 
             carregarCategoriasPorDepartamento(deptSelect.value);
-            populateDashboardColabDropdown();
         }
 
-        function populateDashboardColabDropdown() {
-            const select = document.getElementById('dash-colab-select');
-            const currentSelected = select.value;
-            select.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            if (Array.from(select.options).some(o => o.value === currentSelected)) {
-                select.value = currentSelected;
+        function populateDashboardDropdowns() {
+            const colabSelect = document.getElementById('dash-colab-select');
+            const roleSelect = document.getElementById('dash-target-role-select');
+            const currentColab = colabSelect.value;
+            const currentRole = roleSelect.value;
+
+            colabSelect.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
+                colabSelect.value = currentColab;
             }
+
+            roleSelect.innerHTML = dbData.funcoes.map(f => `<option value="${f.id}">${f.designacao}</option>`).join('');
+            if (Array.from(roleSelect.options).some(o => o.value === currentRole)) {
+                roleSelect.value = currentRole;
+            } else if (colabSelect.value) {
+                // Selecionar por defeito a função atual do colaborador selecionado
+                const activeColab = dbData.colaboradores.find(c => c.id == colabSelect.value);
+                if (activeColab && activeColab.funcao_atual_id) {
+                    roleSelect.value = activeColab.funcao_atual_id;
+                }
+            }
+        }
+
+        function onDashboardColabChange() {
+            const colabSelect = document.getElementById('dash-colab-select');
+            const roleSelect = document.getElementById('dash-target-role-select');
+            const colab = dbData.colaboradores.find(c => c.id == colabSelect.value);
+            if (colab && colab.funcao_atual_id) {
+                roleSelect.value = colab.funcao_atual_id;
+            }
+            renderDashboard();
         }
 
         async function carregarCategoriasPorDepartamento(departamentoId) {
@@ -633,13 +680,16 @@
 
         function renderDashboard() {
             const colabId = document.getElementById('dash-colab-select').value;
-            if (!colabId) return;
+            const funcaoId = document.getElementById('dash-target-role-select').value;
+            if (!colabId || !funcaoId) return;
 
             const colab = dbData.colaboradores.find(c => c.id == colabId);
             if (!colab) return;
 
+            const dept = dbData.departamentos.find(d => d.id == colab.departamento_id) || { nome: 'Assistência Técnica ao Domicílio' };
+            document.getElementById('dash-colab-dept').innerText = dept.nome;
+
             const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
-            const funcaoId = colab.funcao_atual_id;
 
             let gaps = [];
             dbData.competencias.forEach(comp => {
@@ -656,16 +706,16 @@
             document.getElementById('dash-gap-count').innerText = gaps.length;
             const badge = document.getElementById('dash-readiness-badge');
             if (gaps.length === 0) {
-                badge.textContent = "Conforme / Apto";
-                badge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 w-fit";
+                badge.textContent = "Elegível para Promoção";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 w-fit";
             } else {
                 badge.textContent = `${gaps.length} Gaps Pendentes`;
-                badge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit";
             }
 
             const gapListEl = document.getElementById('dash-gap-list');
             if (gaps.length === 0) {
-                gapListEl.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold text-center border border-emerald-200">Sem lacunas de competência para esta função!</div>`;
+                gapListEl.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold text-center border border-emerald-200">Sem lacunas de competência para esta função! O colaborador cumpre todos os requisitos.</div>`;
             } else {
                 gapListEl.innerHTML = gaps.map(g => `
                     <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-xl flex justify-between items-center text-xs">
