@@ -346,6 +346,7 @@
         async function carregarCategoriasPorDepartamento(departamentoId) {
             const selectCategoria = document.getElementById('filtro-categoria');
             if (!selectCategoria) return;
+            const currentCat = selectCategoria.value;
             selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>';
 
             if (isOnlineSupabase && supabaseClient) {
@@ -364,6 +365,9 @@
                     option.textContent = cat.nome;
                     selectCategoria.appendChild(option);
                 });
+                if (Array.from(selectCategoria.options).some(o => o.value === currentCat)) {
+                    selectCategoria.value = currentCat;
+                }
             }
         }
 
@@ -473,8 +477,14 @@
 
         function populateDropdownFilters() {
             const deptSelect = document.getElementById('filter-dept');
+            const currentDept = deptSelect.value || 'ALL';
+
             deptSelect.innerHTML = `<option value="ALL">Todos os Departamentos</option>` +
                 dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+            
+            if (Array.from(deptSelect.options).some(o => o.value === currentDept)) {
+                deptSelect.value = currentDept;
+            }
             carregarCategoriasPorDepartamento(deptSelect.value);
         }
 
@@ -543,9 +553,13 @@
 
         function renderColaboradorDropdown() {
             const select = document.getElementById('colab-select');
+            const currentSelected = select.value;
             select.innerHTML = dbData.colaboradores.map(c => `
                 <option value="${c.id}">${c.nome}</option>
             `).join('');
+            if (Array.from(select.options).some(o => o.value === currentSelected)) {
+                select.value = currentSelected;
+            }
         }
 
         function renderColaboradorProfile() {
@@ -628,52 +642,32 @@
 
         function populateFormDropdowns() {
             const colabSelect = document.getElementById('form-colab-id');
+            const compSelect = document.getElementById('form-comp-id');
+            const currentColab = colabSelect.value;
+            const currentComp = compSelect.value;
+
             colabSelect.innerHTML = dbData.colaboradores.map(c => `
                 <option value="${c.id}">${c.nome}</option>
             `).join('');
+            if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
+                colabSelect.value = currentColab;
+            }
+
             loadFormCompetenciesForColab();
+            if (Array.from(compSelect.options).some(o => o.value === currentComp)) {
+                compSelect.value = currentComp;
+            }
         }
 
         function loadFormCompetenciesForColab() {
             const compSelect = document.getElementById('form-comp-id');
+            const currentComp = compSelect.value;
             compSelect.innerHTML = dbData.competencias.map(c => `
                 <option value="${c.id}">${c.nome}</option>
             `).join('');
-        }
-
-        async function handleSaveEvaluation(e) {
-            e.preventDefault();
-            const colabId = parseInt(document.getElementById('form-colab-id').value, 10);
-            const compId = parseInt(document.getElementById('form-comp-id').value, 10);
-            const level = parseInt(document.getElementById('form-level').value, 10);
-            const feedback = document.getElementById('form-feedback');
-
-            if (isOnlineSupabase && supabaseClient) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('avaliacoes_colaborador')
-                        .upsert({ 
-                            colaborador_id: colabId, 
-                            competencia_id: compId, 
-                            nivel_atual: level,
-                            data_atualizacao: new Date().toISOString()
-                        }, { onConflict: 'colaborador_id,competencia_id' });
-
-                    if (error) throw error;
-
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200";
-                    feedback.innerText = "✓ Avaliação gravada com sucesso no Supabase PostgreSQL!";
-                    feedback.classList.remove('hidden');
-                    await fetchAllDataFromSupabase();
-                } catch (err) {
-                    console.error('Erro ao guardar no Supabase:', err);
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200";
-                    feedback.innerText = "Erro ao guardar no Supabase: " + err.message;
-                    feedback.classList.remove('hidden');
-                }
+            if (Array.from(compSelect.options).some(o => o.value === currentComp)) {
+                compSelect.value = currentComp;
             }
-
-            setTimeout(() => feedback.classList.add('hidden'), 4000);
         }
 
         function getSvgCircle(nivel) {
