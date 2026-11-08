@@ -702,7 +702,7 @@ function populateDashboardDropdowns() {
             });
         }
 
-        function renderDashboard() {
+function renderDashboard() {
             const colabId = document.getElementById('dash-colab-select').value;
             const funcaoId = document.getElementById('dash-target-role-select').value;
             if (!colabId || !funcaoId) return;
@@ -752,14 +752,19 @@ function populateDashboardDropdowns() {
                 `).join('');
             }
 
-            // Atualizar Gráfico Radar por Categoria
-            const categories = [...new Set(dbData.categorias.map(cat => cat.nome))];
+            // Atualizar Gráfico Radar por Categoria (Restrito ao Departamento do Colaborador)
+            const deptId = colab.departamento_id;
+            let deptCategorias = dbData.categorias;
+            if (deptId) {
+                deptCategorias = deptCategorias.filter(cat => cat.departamento_id == deptId);
+            }
+            
+            const categories = deptCategorias.map(cat => cat.nome);
             const catActual = [];
             const catRequired = [];
 
-            categories.forEach(catName => {
-                const catObj = dbData.categorias.find(c => c.nome === catName);
-                const catComps = dbData.competencias.filter(c => c.categoria_id === (catObj ? catObj.id : null));
+            deptCategorias.forEach(catObj => {
+                const catComps = dbData.competencias.filter(c => c.categoria_id === catObj.id);
                 
                 let sumCurr = 0, sumReq = 0;
                 catComps.forEach(comp => {
