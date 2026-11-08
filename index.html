@@ -530,10 +530,16 @@ function populateDropdownFilters() {
                 return matchDept && matchCat && matchSearch;
             });
 
-            filteredComps.sort((a, b) => {
+filteredComps.sort((a, b) => {
                 const catA = (dbData.categorias.find(cat => cat.id == a.categoria_id) || { nome: '' }).nome;
                 const catB = (dbData.categorias.find(cat => cat.id == b.categoria_id) || { nome: '' }).nome;
-                return catA.localeCompare(catB);
+                
+                // Primeiro ordena por categoria
+                const catCompare = catA.localeCompare(catB);
+                if (catCompare !== 0) return catCompare;
+                
+                // Depois ordena o nome da competência por ordem ascendente (A-Z)
+                return a.nome.localeCompare(b.nome);
             });
 
             if (filteredComps.length === 0) {
