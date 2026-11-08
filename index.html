@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Gestão & Consulta de Competências</title>
+    <title>Plataforma de Gestão & Consulta de Competências | Schmitt + Sohn</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para o Gráfico Radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Lucide Icons -->
@@ -42,6 +44,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .harvey-ball { display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -57,7 +60,7 @@
                     </div>
                     <div>
                         <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
-                            <span>Matriz de Competências</span>
+                            <span>Matriz de Competências & Dashboard</span>
                         </h1>
                     </div>
                 </div>
@@ -121,8 +124,13 @@
 
         <!-- Section Navigation Tabs -->
         <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex flex-wrap gap-2">
-            <button id="btn-tab-matrix" onclick="switchTab('tab-matrix')" 
+            <button id="btn-tab-dashboard" onclick="switchTab('tab-dashboard')" 
                     class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition">
+                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                <span>Dashboard & Gaps</span>
+            </button>
+            <button id="btn-tab-matrix" onclick="switchTab('tab-matrix')" 
+                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
                 <i data-lucide="grid" class="w-4 h-4"></i>
                 <span>Matriz de Requisitos</span>
             </button>
@@ -143,13 +151,96 @@
             </button>
         </div>
 
+        <!-- Legenda da Escala de Proficiência Visual (0 a 4) -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-4 h-4 text-schmitt-blue"></i> Escala de Proficiência Visual (0 a 4)
+                </h3>
+                <span class="text-xs text-slate-400 font-semibold">Modelo de Avaliação de Competências</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs font-medium">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-700 flex items-center gap-2">
+                    <span id="leg-0" class="flex-shrink-0"></span>
+                    <span><b>0:</b> Não possui</span>
+                </div>
+                <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-blue-800 flex items-center gap-2">
+                    <span id="leg-1" class="flex-shrink-0"></span>
+                    <span><b>1:</b> Em formação</span>
+                </div>
+                <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-amber-800 flex items-center gap-2">
+                    <span id="leg-2" class="flex-shrink-0"></span>
+                    <span><b>2:</b> Faz com ajuda</span>
+                </div>
+                <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-2">
+                    <span id="leg-3" class="flex-shrink-0"></span>
+                    <span><b>3:</b> Independente</span>
+                </div>
+                <div class="bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-purple-800 flex items-center gap-2">
+                    <span id="leg-4" class="flex-shrink-0"></span>
+                    <span><b>4:</b> Formador</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 0: DASHBOARD & ANÁLISE DE GAPS -->
+        <div id="tab-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Colaborador em Análise</span>
+                    <select id="dash-colab-select" onchange="renderDashboard()" class="mt-2 w-full text-base font-bold text-schmitt-blue bg-slate-50 p-2 rounded-xl border border-slate-200 focus:outline-none">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Gaps de Formação Identificados</span>
+                    <h4 id="dash-gap-count" class="text-3xl font-black text-amber-600 mt-1">0</h4>
+                    <p class="text-xs text-slate-500 mt-1">Requisitos exigidos acima do nível atual</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Estado de Conformidade</span>
+                    <div id="dash-readiness-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit">
+                        A calcular...
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Comparação com a função atual</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Gráfico Radar -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="radar" class="w-5 h-5 text-schmitt-blue"></i>
+                        Perfil vs Requisitos da Função
+                    </h3>
+                    <div class="relative h-72">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lista de Gaps -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500"></i>
+                            Necessidades de Formação (Gaps)
+                        </span>
+                        <span class="text-xs font-normal text-slate-400">Base de Dados Supabase</span>
+                    </h3>
+                    <div id="dash-gap-list" class="space-y-3 overflow-y-auto max-h-72 custom-scrollbar pr-2 flex-grow">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB 1: MATRIZ DE REQUISITOS (CONSULTA GERAL) -->
-        <div id="tab-matrix" class="space-y-4">
+        <div id="tab-matrix" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
-                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos.</p>
+                        <p class="text-xs text-slate-500">Visualização completa da estrutura de competências e níveis exigidos. (Clica numa célula para editar)</p>
                     </div>
 
                     <!-- Filters -->
@@ -165,18 +256,6 @@
                             <input type="text" id="filter-search" oninput="renderMatrixTable()" placeholder="Pesquisar..." 
                                    class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
                         </div>
-                    </div>
-                </div>
-
-                <!-- Legenda de Níveis -->
-                <div class="bg-slate-50 border border-slate-200/70 p-3 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs text-slate-700 shadow-inner">
-                    <span class="font-bold text-schmitt-darkBlue flex items-center gap-1.5"><i data-lucide="info" class="w-4 h-4 text-schmitt-blue"></i> Legenda:</span>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 inline-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/></svg><span><strong>0</strong> - não possui esta competência</span></div>
-                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 inline-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 0 1 21 12 L 12 12 Z" fill="#0055A5"/></svg><span><strong>1</strong> - Colaborador em formação</span></div>
-                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 inline-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 0 1 12 21 L 12 12 Z" fill="#0055A5"/></svg><span><strong>2</strong> - Faz com ajuda</span></div>
-                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 inline-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 1 1 3 12 L 12 12 Z" fill="#0055A5"/></svg><span><strong>3</strong> - Independente</span></div>
-                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 inline-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0055A5" stroke="#0055A5" stroke-width="2.5"/></svg><span><strong>4</strong> - Formador</span></div>
                     </div>
                 </div>
 
@@ -325,13 +404,14 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
-        <p>© Dashboard de Matriz de Competências </p>
+        <p>© Schmitt + Sohn Elevadores — Dashboard de Matriz de Competências (Supabase Connected)</p>
     </footer>
 
     <!-- SCRIPT APPLICATION CORE LOGIC -->
     <script>
         let supabaseClient = null;
         let isOnlineSupabase = false;
+        let radarChart = null;
         
         let dbData = {
             departamentos: [],
@@ -343,43 +423,19 @@
             avaliacoes: []
         };
 
-async function carregarCategoriasPorDepartamento(departamentoId) {
-            const selectCategoria = document.getElementById('filtro-categoria');
-            if (!selectCategoria) return;
-            
-            const currentCat = selectCategoria.value; // Guarda a categoria atualmente selecionada
-
-            if (isOnlineSupabase && supabaseClient) {
-                let query = supabaseClient.from('categorias_competencia').select('id, nome');
-                if (departamentoId && departamentoId !== 'ALL') {
-                    query = query.eq('departamento_id', departamentoId);
-                }
-                const { data: categorias, error } = await query;
-                if (error) {
-                    console.error('Erro ao carregar categorias:', error);
-                    return;
-                }
-                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
-                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
-            } else {
-                let categorias = dbData.categorias;
-                if (departamentoId && departamentoId !== 'ALL') {
-                    categorias = categorias.filter(c => c.departamento_id == departamentoId);
-                }
-                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
-                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
-            }
-
-            // Repõe a categoria selecionada se ainda existir nas opções
-            if (currentCat && Array.from(selectCategoria.options).some(o => o.value == currentCat)) {
-                selectCategoria.value = currentCat;
-            }
-        }
-
         window.onload = function() {
             lucide.createIcons();
+            renderLegendCircles();
+            initRadarChart();
             loadSavedConfigAndInit();
         };
+
+        function renderLegendCircles() {
+            for(let i=0; i<=4; i++) {
+                const el = document.getElementById(`leg-${i}`);
+                if(el) el.innerHTML = getSvgCircle(i);
+            }
+        }
 
         async function loadSavedConfigAndInit() {
             const savedUrl = localStorage.getItem('schmitt_sp_url') || '';
@@ -467,6 +523,7 @@ async function carregarCategoriasPorDepartamento(departamentoId) {
         function renderAllUI() {
             updateOverviewStats();
             populateDropdownFilters();
+            renderDashboard();
             renderMatrixTable();
             renderColaboradorDropdown();
             renderColaboradorProfile();
@@ -480,13 +537,12 @@ async function carregarCategoriasPorDepartamento(departamentoId) {
             document.getElementById('stat-colab-count').innerText = dbData.colaboradores.length;
         }
 
-function populateDropdownFilters() {
+        function populateDropdownFilters() {
             const deptSelect = document.getElementById('filter-dept');
-            const currentDept = deptSelect.value; // Guarda o departamento atualmente selecionado pelo utilizador
+            const currentDept = deptSelect.value;
 
             deptSelect.innerHTML = dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
             
-            // Se já tinhas um departamento selecionado, mantém-no. Se for a primeira vez, usa o primeiro da tabela.
             if (currentDept && Array.from(deptSelect.options).some(o => o.value == currentDept)) {
                 deptSelect.value = currentDept;
             } else if (dbData.departamentos.length > 0) {
@@ -494,12 +550,162 @@ function populateDropdownFilters() {
             }
 
             carregarCategoriasPorDepartamento(deptSelect.value);
+            populateDashboardColabDropdown();
+        }
+
+        function populateDashboardColabDropdown() {
+            const select = document.getElementById('dash-colab-select');
+            const currentSelected = select.value;
+            select.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            if (Array.from(select.options).some(o => o.value === currentSelected)) {
+                select.value = currentSelected;
+            }
+        }
+
+        async function carregarCategoriasPorDepartamento(departamentoId) {
+            const selectCategoria = document.getElementById('filtro-categoria');
+            if (!selectCategoria) return;
+            const currentCat = selectCategoria.value;
+
+            if (isOnlineSupabase && supabaseClient) {
+                let query = supabaseClient.from('categorias_competencia').select('id, nome');
+                if (departamentoId && departamentoId !== 'ALL') {
+                    query = query.eq('departamento_id', departamentoId);
+                }
+                const { data: categorias, error } = await query;
+                if (error) {
+                    console.error('Erro ao carregar categorias:', error);
+                    return;
+                }
+                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
+                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
+            } else {
+                let categorias = dbData.categorias;
+                if (departamentoId && departamentoId !== 'ALL') {
+                    categorias = categorias.filter(c => c.departamento_id == departamentoId);
+                }
+                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
+                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
+            }
+
+            if (currentCat && Array.from(selectCategoria.options).some(o => o.value == currentCat)) {
+                selectCategoria.value = currentCat;
+            }
         }
 
         function onDepartamentoFilterChange() {
             const deptId = document.getElementById('filter-dept').value;
             carregarCategoriasPorDepartamento(deptId);
             renderMatrixTable();
+        }
+
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Nível Atual',
+                            data: [],
+                            backgroundColor: 'rgba(0, 85, 165, 0.25)',
+                            borderColor: '#0055A5',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Nível Requerido',
+                            data: [],
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderColor: '#ef4444',
+                            borderDash: [4, 4],
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 4, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function renderDashboard() {
+            const colabId = document.getElementById('dash-colab-select').value;
+            if (!colabId) return;
+
+            const colab = dbData.colaboradores.find(c => c.id == colabId);
+            if (!colab) return;
+
+            const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
+            const funcaoId = colab.funcao_atual_id;
+
+            let gaps = [];
+            dbData.competencias.forEach(comp => {
+                const req = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == comp.id);
+                const reqLvl = req ? req.nivel_requerido : 0;
+                const evalObj = colabEvals.find(e => e.competencia_id == comp.id);
+                const currLvl = evalObj ? evalObj.nivel_atual : 0;
+
+                if (reqLvl > 0 && currLvl < reqLvl) {
+                    gaps.push({ comp: comp.nome, actual: currLvl, required: reqLvl });
+                }
+            });
+
+            document.getElementById('dash-gap-count').innerText = gaps.length;
+            const badge = document.getElementById('dash-readiness-badge');
+            if (gaps.length === 0) {
+                badge.textContent = "Conforme / Apto";
+                badge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 w-fit";
+            } else {
+                badge.textContent = `${gaps.length} Gaps Pendentes`;
+                badge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit";
+            }
+
+            const gapListEl = document.getElementById('dash-gap-list');
+            if (gaps.length === 0) {
+                gapListEl.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold text-center border border-emerald-200">Sem lacunas de competência para esta função!</div>`;
+            } else {
+                gapListEl.innerHTML = gaps.map(g => `
+                    <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-xl flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800">${g.comp}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 bg-red-200 text-red-800 rounded font-bold">Gap</span>
+                            <span class="flex items-center gap-1">${getSvgCircle(g.actual, 16)} / ${getSvgCircle(g.required, 16)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Atualizar Gráfico Radar por Categoria
+            const categories = [...new Set(dbData.categorias.map(cat => cat.nome))];
+            const catActual = [];
+            const catRequired = [];
+
+            categories.forEach(catName => {
+                const catObj = dbData.categorias.find(c => c.nome === catName);
+                const catComps = dbData.competencias.filter(c => c.categoria_id === (catObj ? catObj.id : null));
+                
+                let sumCurr = 0, sumReq = 0;
+                catComps.forEach(comp => {
+                    const req = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == comp.id);
+                    sumReq += req ? req.nivel_requerido : 0;
+                    const ev = colabEvals.find(e => e.competencia_id == comp.id);
+                    sumCurr += ev ? ev.nivel_atual : 0;
+                });
+
+                const count = catComps.length || 1;
+                catActual.push(sumCurr / count);
+                catRequired.push(sumReq / count);
+            });
+
+            if (radarChart) {
+                radarChart.data.labels = categories;
+                radarChart.data.datasets[0].data = catActual;
+                radarChart.data.datasets[1].data = catRequired;
+                radarChart.update();
+            }
         }
 
         function renderMatrixTable() {
@@ -530,15 +736,11 @@ function populateDropdownFilters() {
                 return matchDept && matchCat && matchSearch;
             });
 
-filteredComps.sort((a, b) => {
+            filteredComps.sort((a, b) => {
                 const catA = (dbData.categorias.find(cat => cat.id == a.categoria_id) || { nome: '' }).nome;
                 const catB = (dbData.categorias.find(cat => cat.id == b.categoria_id) || { nome: '' }).nome;
-                
-                // Primeiro ordena por categoria
                 const catCompare = catA.localeCompare(catB);
                 if (catCompare !== 0) return catCompare;
-                
-                // Depois ordena o nome da competência por ordem ascendente (A-Z)
                 return a.nome.localeCompare(b.nome);
             });
 
@@ -568,9 +770,7 @@ filteredComps.sort((a, b) => {
         function renderColaboradorDropdown() {
             const select = document.getElementById('colab-select');
             const currentSelected = select.value;
-            select.innerHTML = dbData.colaboradores.map(c => `
-                <option value="${c.id}">${c.nome}</option>
-            `).join('');
+            select.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (Array.from(select.options).some(o => o.value === currentSelected)) {
                 select.value = currentSelected;
             }
@@ -660,9 +860,7 @@ filteredComps.sort((a, b) => {
             const currentColab = colabSelect.value;
             const currentComp = compSelect.value;
 
-            colabSelect.innerHTML = dbData.colaboradores.map(c => `
-                <option value="${c.id}">${c.nome}</option>
-            `).join('');
+            colabSelect.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
                 colabSelect.value = currentColab;
             }
@@ -676,36 +874,42 @@ filteredComps.sort((a, b) => {
         function loadFormCompetenciesForColab() {
             const compSelect = document.getElementById('form-comp-id');
             const currentComp = compSelect.value;
-            compSelect.innerHTML = dbData.competencias.map(c => `
-                <option value="${c.id}">${c.nome}</option>
-            `).join('');
+            compSelect.innerHTML = dbData.competencias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (Array.from(compSelect.options).some(o => o.value === currentComp)) {
                 compSelect.value = currentComp;
             }
         }
 
-        function getSvgCircle(nivel) {
-            const svgs = {
-                0: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="0 — não possui esta competência"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/></svg>',
-                1: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="1 — Colaborador em formação"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 0 1 21 12 L 12 12 Z" fill="#0055A5"/></svg>',
-                2: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="2 — Faz com ajuda"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 0 1 12 21 L 12 12 Z" fill="#0055A5"/></svg>',
-                3: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="3 — Independente"><circle cx="12" cy="12" r="9" fill="none" stroke="#0055A5" stroke-width="2.5"/><path d="M12 3 A 9 9 0 1 1 3 12 L 12 12 Z" fill="#0055A5"/></svg>',
-                4: '<svg class="w-4 h-4 inline-block align-middle" viewBox="0 0 24 24" title="4 — Formador"><circle cx="12" cy="12" r="9" fill="#0055A5" stroke="#0055A5" stroke-width="2.5"/></svg>'
-            };
-            return svgs[nivel] || svgs[0];
+        function getSvgCircle(nivel, size = 18) {
+            const v = Math.min(Math.max(parseInt(nivel) || 0, 0), 4);
+            let path = '';
+            const colors = { 0: 'text-slate-300', 1: 'text-blue-500', 2: 'text-amber-500', 3: 'text-emerald-600', 4: 'text-purple-600' };
+            const activeColor = colors[v];
+
+            if (v === 1) path = '<path d="M 12 12 L 12 2 A 10 10 0 0 1 22 12 Z" fill="currentColor"/>';
+            else if (v === 2) path = '<path d="M 12 12 L 12 2 A 10 10 0 0 1 12 22 Z" fill="currentColor"/>';
+            else if (v === 3) path = '<path d="M 12 12 L 12 2 A 10 10 0 1 1 2 12 Z" fill="currentColor"/>';
+            else if (v === 4) path = '<circle cx="12" cy="12" r="9.5" fill="currentColor"/>';
+
+            return `
+                <svg class="harvey-ball ${activeColor}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                    ${path}
+                </svg>
+            `;
         }
 
         function getLevelBadge(lvl, showLabel = false) {
             const nivel = parseInt(lvl, 10) || 0;
-            const svg = getSvgCircle(nivel);
+            const svg = getSvgCircle(nivel, 18);
             
             if (!showLabel) {
                 return `<div class="flex justify-center items-center">${svg}</div>`;
             }
 
             const labels = {
-                0: "0 - não possui esta competência",
-                1: "1 - Colaborador em formação",
+                0: "0 - Não possui",
+                1: "1 - Em formação",
                 2: "2 - Faz com ajuda",
                 3: "3 - Independente",
                 4: "4 - Formador"
@@ -775,8 +979,43 @@ filteredComps.sort((a, b) => {
             }
         }
 
+        async function handleSaveEvaluation(e) {
+            e.preventDefault();
+            const colabId = document.getElementById('form-colab-id').value;
+            const compId = document.getElementById('form-comp-id').value;
+            const level = parseInt(document.getElementById('form-level').value, 10);
+            const feedback = document.getElementById('form-feedback');
+
+            if (!colabId || !compId) return;
+
+            if (isOnlineSupabase && supabaseClient) {
+                try {
+                    const existing = dbData.avaliacoes.find(a => a.colaborador_id == colabId && a.competencia_id == compId);
+                    if (existing) {
+                        const { error } = await supabaseClient
+                            .from('avaliacoes_colaborador')
+                            .update({ nivel_atual: level })
+                            .eq('id', existing.id);
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabaseClient
+                            .from('avaliacoes_colaborador')
+                            .insert({ colaborador_id: colabId, competencia_id: compId, nivel_atual: level });
+                        if (error) throw error;
+                    }
+
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                    feedback.innerText = "Avaliação guardada com sucesso no Supabase!";
+                    await fetchAllDataFromSupabase();
+                } catch (err) {
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
+                    feedback.innerText = "Erro ao guardar: " + err.message;
+                }
+            }
+        }
+
         function switchTab(tabId) {
-            ['matrix', 'colab', 'eval', 'config'].forEach(t => {
+            ['dashboard', 'matrix', 'colab', 'eval', 'config'].forEach(t => {
                 const page = document.getElementById(`tab-${t}`);
                 const btn = document.getElementById(`btn-tab-${t}`);
                 if (`tab-${t}` === tabId) {
@@ -792,7 +1031,7 @@ filteredComps.sort((a, b) => {
 
     <!-- Custom Modal Dialog for Editing Requirement Level -->
     <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
@@ -803,8 +1042,8 @@ filteredComps.sort((a, b) => {
             <div class="space-y-3">
                 <label class="block text-xs font-semibold text-slate-600">Selecione o nível exigido (0 a 4):</label>
                 <select id="modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
-                    <option value="0">○ 0 — não possui esta competência</option>
-                    <option value="1">◔ 1 — Colaborador em formação</option>
+                    <option value="0">○ 0 — Não possui</option>
+                    <option value="1">◔ 1 — Em formação</option>
                     <option value="2">◑ 2 — Faz com ajuda</option>
                     <option value="3">◕ 3 — Independente</option>
                     <option value="4">● 4 — Formador</option>
@@ -814,7 +1053,7 @@ filteredComps.sort((a, b) => {
                 <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
                     Cancelar
                 </button>
-                <button id="modal-confirm-btn" onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
+                <button onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
                     OK
                 </button>
             </div>
