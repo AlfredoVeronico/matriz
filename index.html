@@ -384,7 +384,7 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
-        <p>© Schmitt + Sohn Elevadores — Dashboard de Matriz de Competências (Supabase Connected)</p>
+        <p>© Schmitt + Sohn Elevadores — Dashboard de Matriz de Competências</p>
     </footer>
 
     <!-- SCRIPT APPLICATION CORE LOGIC -->
@@ -434,7 +434,7 @@
 
         async function tryConnectSupabase(url, key) {
             try {
-                updateStatusBadge('connecting', 'A Ligar ao Supabase...');
+                updateStatusBadge('connecting', 'A Ligar...');
                 supabaseClient = window.supabase.createClient(url, key);
                 const { data, error } = await supabaseClient.from('departamentos').select('*');
                 if (error) throw error;
