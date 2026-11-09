@@ -440,12 +440,12 @@
                 if (error) throw error;
 
                 isOnlineSupabase = true;
-                updateStatusBadge('online', 'Supabase Ligado (Ao Vivo)');
+                updateStatusBadge('online', 'Ligado');
                 await fetchAllDataFromSupabase();
             } catch (err) {
                 console.warn('Erro ao ligar ao Supabase:', err);
                 isOnlineSupabase = false;
-                updateStatusBadge('offline', 'Erro de Conexão Supabase');
+                updateStatusBadge('offline', 'Erro de Conexão');
             }
         }
 
