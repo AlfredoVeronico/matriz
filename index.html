@@ -289,27 +289,21 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
-                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação.</p>
+                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação. (Clica na célula de nível atual para editar)</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Selecionar Categoria:</label>
-                            <select id="colab-cat-filter" onchange="renderColaboradorProfile()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none">
-                                <option value="">Todas as Categorias</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Selecionar Técnico:</label>
-                            <select id="colab-select" onchange="onColabSelectChange()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-schmitt-blue focus:outline-none">
-                                <!-- Populated dynamically -->
-                            </select>
-                        </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <select id="colab-cat-filter" onchange="renderColaboradorProfile()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none min-w-[180px]">
+                            <option value="">Todas as Categorias</option>
+                        </select>
+                        <select id="colab-select" onchange="onColabSelectChange()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-schmitt-blue focus:outline-none min-w-[180px]">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
                 </div>
 
                 <div id="colab-info-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap justify-between items-center gap-4">
-                    <!-- Populated dynamically -->
+                    <!-- Populated dynamically via JS -->
                 </div>
 
                 <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
@@ -872,6 +866,7 @@
 
             const matchPct = totalReq > 0 ? Math.round((achieved / totalReq) * 100) : 100;
 
+            // Renderiza o cartão de info, replicando os seletores alinhados à direita
             card.innerHTML = `
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-schmitt-blue text-white font-bold flex items-center justify-center text-sm">
@@ -892,9 +887,36 @@
                         <span class="text-slate-500 block">GAPs / Necessidades</span>
                         <span class="font-bold text-base ${gaps > 0 ? 'text-amber-600' : 'text-emerald-600'}">${gaps}</span>
                     </div>
+                    
+                    <!-- Réplica dos seletores alinhados à direita dentro do card -->
+                    <div class="flex items-center gap-2 ml-4">
+                        <select id="colab-card-cat-filter" onchange="syncSelectors('cat', this.value)" class="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none min-w-[160px]">
+                        </select>
+                        <select id="colab-card-select" onchange="syncSelectors('colab', this.value)" class="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 font-bold text-schmitt-blue focus:outline-none min-w-[160px]">
+                        </select>
+                    </div>
                 </div>
             `;
+            
+            // Popula e sincroniza os seletores dentro do card
+            const cardCatSelect = document.getElementById('colab-card-cat-filter');
+            const cardColabSelect = document.getElementById('colab-card-select');
+            
+            // Clona as opções do filtro de categoria principal
+            Array.from(document.getElementById('colab-cat-filter').options).forEach(opt => {
+                const clone = opt.cloneNode(true);
+                cardCatSelect.appendChild(clone);
+            });
+            cardCatSelect.value = catFilterId; // Define o valor atual
 
+            // Clona as opções do seletor de colaborador principal
+            Array.from(document.getElementById('colab-select').options).forEach(opt => {
+                const clone = opt.cloneNode(true);
+                cardColabSelect.appendChild(clone);
+            });
+            cardColabSelect.value = colabId; // Define o valor atual
+
+            // Resto da lógica de renderização da tabela (inalterada)
             let deptCategorias = dbData.categorias.filter(cat => cat.departamento_id == deptId);
             if (catFilterId) {
                 deptCategorias = deptCategorias.filter(cat => cat.id == catFilterId);
@@ -931,6 +953,19 @@
                     </tr>
                 `;
             }).join('');
+        }
+        
+        // Função auxiliar para sincronizar os seletores principais e os do card
+        function syncSelectors(type, value) {
+            if (type === 'cat') {
+                document.getElementById('colab-cat-filter').value = value;
+                // O evento onchange do seletor principal já chamará renderColaboradorProfile()
+                document.getElementById('colab-cat-filter').dispatchEvent(new Event('change'));
+            } else if (type === 'colab') {
+                document.getElementById('colab-select').value = value;
+                // O evento onchange do seletor principal já chamará onColabSelectChange()
+                document.getElementById('colab-select').dispatchEvent(new Event('change'));
+            }
         }
 
         function populateFormDropdowns() {
