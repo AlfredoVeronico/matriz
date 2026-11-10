@@ -122,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Section Navigation Tabs (Sem a aba de Configuração) -->
+        <!-- Section Navigation Tabs -->
         <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex flex-wrap gap-2">
             <button id="btn-tab-dashboard" onclick="switchTab('tab-dashboard')" 
                     class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition">
@@ -283,13 +283,13 @@
             </div>
         </div>
 
-        <!-- TAB 2: CONSULTA DE COLABORADORES & GAP ANALYSIS -->
+        <!-- TAB 2: CONSULTA DE COLABORADORES & GAP ANALYSIS (MATRIZ DE COLABORADORES) -->
         <div id="tab-colab" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
-                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação.</p>
+                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação. (Clica na célula de nível atual para editar)</p>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -587,28 +587,13 @@
             if (!selectCategoria) return;
             const currentCat = selectCategoria.value;
 
-            if (isOnlineSupabase && supabaseClient) {
-                let query = supabaseClient.from('categorias_competencia').select('id, nome');
-                if (departamentoId && departamentoId !== 'ALL') {
-                    query = query.eq('departamento_id', departamentoId);
-                }
-                const { data: categorias, error } = await query;
-                if (error) {
-                    console.error('Erro ao carregar categorias:', error);
-                    return;
-                }
-                categorias.sort((a, b) => a.nome.localeCompare(b.nome));
-                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
-                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
-            } else {
-                let categorias = [...dbData.categorias];
-                if (departamentoId && departamentoId !== 'ALL') {
-                    categorias = categorias.filter(c => c.departamento_id == departamentoId);
-                }
-                categorias.sort((a, b) => a.nome.localeCompare(b.nome));
-                selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
-                    categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
+            let categorias = [...dbData.categorias];
+            if (departamentoId && departamentoId !== 'ALL') {
+                categorias = categorias.filter(c => c.departamento_id == departamentoId);
             }
+            categorias.sort((a, b) => a.nome.localeCompare(b.nome));
+            selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
+                categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
 
             if (currentCat && Array.from(selectCategoria.options).some(o => o.value == currentCat)) {
                 selectCategoria.value = currentCat;
@@ -795,7 +780,8 @@
         function renderColaboradorDropdown() {
             const select = document.getElementById('colab-select');
             const currentSelected = select.value;
-            select.innerHTML = dbData.colaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            const sortedColabs = [...dbData.colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
+            select.innerHTML = sortedColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (Array.from(select.options).some(o => o.value === currentSelected)) {
                 select.value = currentSelected;
             }
@@ -865,14 +851,21 @@
                 </div>
             `;
 
+            // Obter e ordenar categorias alfabeticamente
             const deptCategorias = dbData.categorias.filter(cat => cat.departamento_id == deptId);
             deptCategorias.sort((a, b) => a.nome.localeCompare(b.nome));
-            const deptCatIds = deptCategorias.map(cat => cat.id);
-            const deptCompetencias = dbData.competencias.filter(comp => deptCatIds.includes(comp.categoria_id));
-            deptCompetencias.sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            // Obter e ordenar competências alfabeticamente dentro das categorias ordenadas
+            let deptCompetencias = [];
+            deptCategorias.forEach(catObj => {
+                const compsInCat = dbData.competencias.filter(c => c.categoria_id == catObj.id);
+                compsInCat.sort((a, b) => a.nome.localeCompare(b.nome));
+                compsInCat.forEach(comp => {
+                    deptCompetencias.push({ ...comp, categoriaNome: catObj.nome });
+                });
+            });
 
             tbody.innerHTML = deptCompetencias.map(comp => {
-                const catObj = deptCategorias.find(c => c.id == comp.categoria_id) || { nome: 'Geral' };
                 const req = dbData.requisitos.find(r => r.funcao_id == funcaoAcima.id && r.competencia_id == comp.id);
                 const reqLvl = req ? req.nivel_requerido : 0;
 
@@ -882,10 +875,12 @@
 
                 return `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 text-slate-500 text-[11px]">${catObj.nome}</td>
+                        <td class="p-3 text-slate-500 text-[11px]">${comp.categoriaNome}</td>
                         <td class="p-3 font-semibold text-slate-800">${comp.nome}</td>
                         <td class="p-3 text-center" title="Nível requerido para ${funcaoAcima.designacao}">${getLevelBadge(reqLvl, false)}</td>
-                        <td class="p-3 text-center" title="Nível atual do colaborador">${getLevelBadge(currLvl, false)}</td>
+                        <td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition rounded group" onclick="handleColabEvalCellClick(${colab.id}, ${comp.id}, ${currLvl})" title="Clique para editar nível atual">
+                            <div class="relative">${getLevelBadge(currLvl, false)}<span class="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-[10px] text-schmitt-blue font-bold">✎</span></div>
+                        </td>
                         <td class="p-3 text-center">${getGapStateBadge(diff, reqLvl)}</td>
                         <td class="p-3 text-xs text-slate-600">${getGapActionPlan(diff, reqLvl)}</td>
                     </tr>
@@ -1038,6 +1033,53 @@
             }
         }
 
+        // Modal para Edição do Nível Atual do Colaborador na Matriz de Colaboradores
+        let currentEditingColabEval = null;
+
+        function handleColabEvalCellClick(colaboradorId, competenciaId, currentLvl) {
+            currentEditingColabEval = { colaboradorId, competenciaId };
+            const select = document.getElementById('eval-modal-level-select');
+            select.value = currentLvl;
+            document.getElementById('eval-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeEvalModal() {
+            document.getElementById('eval-modal').classList.add('hidden');
+            currentEditingColabEval = null;
+        }
+
+        async function confirmEvalModal() {
+            if (!currentEditingColabEval) return;
+            const { colaboradorId, competenciaId } = currentEditingColabEval;
+            const newLvl = parseInt(document.getElementById('eval-modal-level-select').value, 10);
+            closeEvalModal();
+
+            if (isOnlineSupabase && supabaseClient) {
+                try {
+                    const existing = dbData.avaliacoes.find(a => a.colaborador_id == colaboradorId && a.competencia_id == competenciaId);
+                    
+                    if (existing) {
+                        const { error } = await supabaseClient
+                            .from('avaliacoes_colaborador')
+                            .update({ nivel_atual: newLvl })
+                            .eq('id', existing.id);
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabaseClient
+                            .from('avaliacoes_colaborador')
+                            .insert({ colaborador_id: colaboradorId, competencia_id: competenciaId, nivel_atual: newLvl });
+                        if (error) throw error;
+                    }
+
+                    await fetchAllDataFromSupabase();
+                } catch (err) {
+                    console.error("Erro ao atualizar avaliação:", err);
+                    alert("Erro ao atualizar no Supabase: " + err.message);
+                }
+            }
+        }
+
         async function handleSaveEvaluation(e) {
             e.preventDefault();
             const colabId = document.getElementById('form-colab-id').value;
@@ -1087,7 +1129,6 @@
             });
         }
 
-        // Funções para gerir o Modal de Configuração do Supabase ativado pela roda dentada
         function openConfigModal() {
             document.getElementById('config-modal').classList.remove('hidden');
             lucide.createIcons();
@@ -1129,7 +1170,38 @@
         </div>
     </div>
 
-    <!-- Modal para Configuração do Supabase (Ligado à Roda Dentada) -->
+    <!-- Modal para Edição do Nível Atual do Colaborador -->
+    <div id="eval-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
+                    <span>Atualizar Nível Atual do Colaborador</span>
+                </h3>
+                <button onclick="closeEvalModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <label class="block text-xs font-semibold text-slate-600">Selecione o nível demonstrado (0 a 4):</label>
+                <select id="eval-modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
+                    <option value="0">○ 0 — Não possui</option>
+                    <option value="1">◔ 1 — Em formação</option>
+                    <option value="2">◑ 2 — Faz com ajuda</option>
+                    <option value="3">◕ 3 — Independente</option>
+                    <option value="4">● 4 — Formador</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onclick="closeEvalModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                    Cancelar
+                </button>
+                <button onclick="confirmEvalModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Configuração do Supabase -->
     <div id="config-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-lg space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
