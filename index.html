@@ -515,8 +515,7 @@ async function fetchAllDataFromSupabase() {
         dbData.tipo = tipRes.data || [];
         dbData.equipas = eqRes.data || [];
 
-        // Diagnóstico na consola para confirmar que os dados chegaram
-        console.log("Delegações carregadas do Supabase:", dbData.delegacoes);
+        console.log("Dados carregados com sucesso. Delegações:", dbData.delegacoes.length);
 
         renderAllUI();
     } catch (e) {
@@ -1257,26 +1256,28 @@ function onTopoSelectChange() {
             }
         }
 
-        function switchTab(tabId) {
-            ['dashboard', 'matrix', 'colab', 'eval'].forEach(t => {
-                const page = document.getElementById(`tab-${t}`);
-                const btn = document.getElementById(`btn-tab-${t}`);
-                if (`tab-${t}` === tabId) {
-                    page.classList.remove('hidden');
-                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition";
-                } else {
-                    page.classList.add('hidden');
-                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition";
-                }
-            });
-
-            const profLegend = document.getElementById('proficiencia-legend-box');
-            if (tabId === 'tab-eval') {
-                profLegend.classList.add('hidden');
-            } else {
-                profLegend.classList.remove('hidden');
-            }
+function switchTab(tabId) {
+    ['dashboard', 'matrix', 'colab', 'eval'].forEach(t => {
+        const page = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`btn-tab-${t}`);
+        if (`tab-${t}` === tabId) {
+            page.classList.remove('hidden');
+            btn.className = "px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition";
+        } else {
+            page.classList.add('hidden');
+            btn.className = "px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition";
         }
+    });
+
+    const profLegend = document.getElementById('proficiencia-legend-box');
+    if (tabId === 'tab-eval') {
+        profLegend.classList.add('hidden');
+        // REFORÇO: Sempre que entra no separador de Registo, repopula os dropdowns de hierarquia
+        populateRegistoFormDropdowns();
+    } else {
+        profLegend.classList.remove('hidden');
+    }
+}
 
         function openConfigModal() {
             document.getElementById('config-modal').classList.remove('hidden');
