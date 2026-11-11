@@ -485,41 +485,44 @@
             }
         }
 
-        async function fetchAllDataFromSupabase() {
-            try {
-                const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes, topRes, sedeRes, delRes, tipRes, eqRes] = await Promise.all([
-                    supabaseClient.from('departamentos').select('*'),
-                    supabaseClient.from('categorias_competencia').select('*'),
-                    supabaseClient.from('competencias').select('*'),
-                    supabaseClient.from('funcoes').select('*'),
-                    supabaseClient.from('requisitos_funcao').select('*'),
-                    supabaseClient.from('colaboradores').select('*'),
-                    supabaseClient.from('avaliacoes_colaborador').select('*'),
-                    supabaseClient.from('topo').select('*'),
-                    supabaseClient.from('sede').select('*'),
-                    supabaseClient.from('delegacoes').select('*'),
-                    supabaseClient.from('tipo').select('*'),
-                    supabaseClient.from('equipas').select('*')
-                ]);
+async function fetchAllDataFromSupabase() {
+    try {
+        const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes, topRes, sedeRes, delRes, tipRes, eqRes] = await Promise.all([
+            supabaseClient.from('departamentos').select('*'),
+            supabaseClient.from('categorias_competencia').select('*'),
+            supabaseClient.from('competencias').select('*'),
+            supabaseClient.from('funcoes').select('*'),
+            supabaseClient.from('requisitos_funcao').select('*'),
+            supabaseClient.from('colaboradores').select('*'),
+            supabaseClient.from('avaliacoes_colaborador').select('*'),
+            supabaseClient.from('topo').select('*'),
+            supabaseClient.from('sede').select('*'),
+            supabaseClient.from('delegacoes').select('*'),
+            supabaseClient.from('tipo').select('*'),
+            supabaseClient.from('equipas').select('*')
+        ]);
 
-                dbData.departamentos = dRes.data || [];
-                dbData.categorias = cCatRes.data || [];
-                dbData.competencias = cCompRes.data || [];
-                dbData.funcoes = fRes.data || [];
-                dbData.requisitos = rRes.data || [];
-                dbData.colaboradores = colRes.data || [];
-                dbData.avaliacoes = aRes.data || [];
-                dbData.topo = topRes.data && topRes.data.length > 0 ? topRes.data : [{id: 1, nome: 'Sede'}, {id: 2, nome: 'Delegações'}];
-                dbData.sede = sedeRes.data || [];
-                dbData.delegacoes = delRes.data || [];
-                dbData.tipo = tipRes.data || [];
-                dbData.equipas = eqRes.data || [];
+        dbData.departamentos = dRes.data || [];
+        dbData.categorias = cCatRes.data || [];
+        dbData.competencias = cCompRes.data || [];
+        dbData.funcoes = fRes.data || [];
+        dbData.requisitos = rRes.data || [];
+        dbData.colaboradores = colRes.data || [];
+        dbData.avaliacoes = aRes.data || [];
+        dbData.topo = topRes.data && topRes.data.length > 0 ? topRes.data : [{id: 1, nome: 'Sede'}, {id: 2, nome: 'Delegações'}];
+        dbData.sede = sedeRes.data || [];
+        dbData.delegacoes = delRes.data || [];
+        dbData.tipo = tipRes.data || [];
+        dbData.equipas = eqRes.data || [];
 
-                renderAllUI();
-            } catch (e) {
-                console.error("Erro a carregar tabelas do Supabase:", e);
-            }
-        }
+        // Diagnóstico na consola para confirmar que os dados chegaram
+        console.log("Delegações carregadas do Supabase:", dbData.delegacoes);
+
+        renderAllUI();
+    } catch (e) {
+        console.error("Erro a carregar tabelas do Supabase:", e);
+    }
+}
 
         function saveSupabaseConfig() {
             const url = document.getElementById('supabase-url-input').value.trim();
@@ -987,49 +990,49 @@
             onTopoSelectChange();
         }
 
-        function onTopoSelectChange() {
-            const topoSelect = document.getElementById('reg-topo');
-            if (!topoSelect) return;
+function onTopoSelectChange() {
+    const topoSelect = document.getElementById('reg-topo');
+    if (!topoSelect) return;
 
-            const topoId = topoSelect.value;
-            const containerDelegacao = document.getElementById('container-reg-delegacao');
-            const containerTipo = document.getElementById('container-reg-tipo');
-            const containerEquipa = document.getElementById('container-reg-equipa');
+    const topoId = topoSelect.value;
+    const containerDelegacao = document.getElementById('container-reg-delegacao');
+    const containerTipo = document.getElementById('container-reg-tipo');
+    const containerEquipa = document.getElementById('container-reg-equipa');
 
-            if (topoId == 1) { // 1 = Sede
-                containerDelegacao.innerHTML = `
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Departamento (Sede)</label>
-                    <select id="reg-sede-dept" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                        ${dbData.sede.length > 0 
-                            ? dbData.sede.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
-                            : dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('')
-                        }
-                    </select>
-                `;
-                if (containerTipo) containerTipo.classList.add('hidden');
-                if (containerEquipa) containerEquipa.classList.add('hidden');
-            } else { // 2 = Delegações
-                const delegacoesOptions = dbData.delegacoes.length > 0
-                    ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona} - ${d.designacao || 'Delegação'}</option>`).join('')
-                    : '<option value="">Sem delegações carregadas</option>';
+    if (topoId == 1) { // 1 = Sede
+        containerDelegacao.innerHTML = `
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Departamento (Sede)</label>
+            <select id="reg-sede-dept" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                ${dbData.sede.length > 0 
+                    ? dbData.sede.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
+                    : dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('')
+                }
+            </select>
+        `;
+        if (containerTipo) containerTipo.classList.add('hidden');
+        if (containerEquipa) containerEquipa.classList.add('hidden');
+    } else { // 2 = Delegações
+        // Garante que se dbData.delegacoes estiver vazio, tenta ler diretamente do DOM ou exibe aviso claro
+        const delegacoesOptions = dbData.delegacoes.length > 0
+            ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('')
+            : '<option value="">⚠️ Sem dados na tabela delegacoes</option>';
 
-                containerDelegacao.innerHTML = `
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
-                    <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                        <option value="">Selecione a Delegação...</option>
-                        ${delegacoesOptions}
-                    </select>
-                `;
-                if (containerTipo) containerTipo.classList.remove('hidden');
-                if (containerEquipa) containerEquipa.classList.remove('hidden');
-                
-                const tipoSelect = document.getElementById('reg-tipo');
-                const equipaSelect = document.getElementById('reg-equipa');
-                if (tipoSelect) tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>';
-                if (equipaSelect) equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
-            }
-        }
-
+        containerDelegacao.innerHTML = `
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
+            <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                <option value="">Selecione a Delegação...</option>
+                ${delegacoesOptions}
+            </select>
+        `;
+        if (containerTipo) containerTipo.classList.remove('hidden');
+        if (containerEquipa) containerEquipa.classList.remove('hidden');
+        
+        const tipoSelect = document.getElementById('reg-tipo');
+        const equipaSelect = document.getElementById('reg-equipa');
+        if (tipoSelect) tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>';
+        if (equipaSelect) equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+    }
+}
         function loadTiposForDelegacao() {
             const delegacaoSelect = document.getElementById('reg-delegacao');
             const tipoSelect = document.getElementById('reg-tipo');
