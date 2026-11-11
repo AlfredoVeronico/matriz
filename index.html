@@ -141,8 +141,8 @@
             </button>
             <button id="btn-tab-eval" onclick="switchTab('tab-eval')" 
                     class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                <span>Registar Competência</span>
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>Registo de Colaboradores</span>
             </button>
         </div>
 
@@ -289,10 +289,10 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
-                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação. </p>
+                        <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação.</p>
                     </div>
 
-                    <!-- Unicos Seletores no Topo (Técnico e Categoria) -->
+                    <!-- Seletores Principais no Topo -->
                     <div class="flex items-center gap-3 w-full md:w-auto">
                         <select id="colab-select" onchange="onColabSelectChange()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-schmitt-blue focus:outline-none">
                             <!-- Populated dynamically -->
@@ -303,7 +303,6 @@
                     </div>
                 </div>
 
-                <!-- Card de Informações Limpo (Sem seletores duplicados) -->
                 <div id="colab-info-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap justify-between items-center gap-4">
                     <!-- Populated dynamically -->
                 </div>
@@ -328,54 +327,71 @@
             </div>
         </div>
 
-        <!-- TAB 3: REGISTAR / EDITAR AVALIAÇÕES -->
+        <!-- TAB 3: REGISTO DE COLABORADORES (Criar/Editar Colaborador e Atribuir Equipa) -->
         <div id="tab-eval" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 max-w-3xl mx-auto">
                 <div class="border-b border-slate-100 pb-4">
                     <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="edit" class="w-5 h-5 text-schmitt-blue"></i>
-                        <span>Registar Níveis de Competência</span>
+                        <i data-lucide="user-plus" class="w-5 h-5 text-schmitt-blue"></i>
+                        <span>Registo e Atribuição de Colaborador</span>
                     </h2>
-                    <p class="text-xs text-slate-500">Atualize as avaliações no Supabase de um colaborador existente ou crie um novo técnico.</p>
+                    <p class="text-xs text-slate-500">Adicione um novo colaborador ou atualize os seus dados e a respetiva Equipa na base de dados.</p>
                 </div>
 
-                <form id="form-eval" onsubmit="handleSaveEvaluation(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <form id="form-colab-registo" onsubmit="handleSaveColaborador(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Colaborador</label>
-                            <select id="form-colab-id" onchange="onFormColabChange()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                                <!-- Populated dynamically -->
-                            </select>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Colaborador</label>
+                            <input type="text" id="reg-nome" required placeholder="Nome completo" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
-                            <select id="form-cat-id" onchange="loadFormCompetenciesForCategory()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                                <!-- Populated dynamically -->
-                            </select>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Número Mecanográfico</label>
+                            <input type="number" id="reg-num-mec" placeholder="Ex: 201068" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                            <input type="email" id="reg-email" placeholder="email@schmitt-elevadores.com" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Competência a Avaliar</label>
-                            <select id="form-comp-id" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Função Atual</label>
+                            <select id="reg-funcao" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
                                 <!-- Populated dynamically -->
                             </select>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nível Demonstrado pelo Técnico (0 a 4)</label>
-                        <select id="form-level" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 focus:outline-none">
-                            <option value="0">○ 0 — não possui esta competência</option>
-                            <option value="1">◔ 1 — Colaborador em formação</option>
-                            <option value="2">◑ 2 — Faz com ajuda</option>
-                            <option value="3">◕ 3 — Independente</option>
-                            <option value="4">● 4 — Formador</option>
-                        </select>
+                    <!-- Nova Atribuição de Equipa baseada na Hierarquia (Topo -> Delegações -> Tipo -> Equipa) -->
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Atribuição Organizacional / Equipa</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
+                                <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2 font-medium focus:outline-none">
+                                    <option value="">Selecione a Delegação...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo (NA / SAV)</label>
+                                <select id="reg-tipo" onchange="loadEquipasForTipo()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2 font-medium focus:outline-none">
+                                    <option value="">Selecione o Tipo...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Equipa Nº</label>
+                                <select id="reg-equipa" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2 font-bold text-schmitt-blue focus:outline-none">
+                                    <option value="">Selecione a Equipa...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="pt-2 flex justify-end">
                         <button type="submit" class="px-5 py-2.5 bg-schmitt-blue text-white rounded-xl text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
                             <i data-lucide="save" class="w-4 h-4"></i>
-                            <span>Guardar Avaliação na Base de Dados</span>
+                            <span>Guardar Colaborador no Supabase</span>
                         </button>
                     </div>
                 </form>
@@ -404,7 +420,10 @@
             funcoes: [],
             requisitos: [],
             colaboradores: [],
-            avaliacoes: []
+            avaliacoes: [],
+            delegacoes: [],
+            tipo: [],
+            equipas: []
         };
 
         window.onload = function() {
@@ -455,14 +474,17 @@
 
         async function fetchAllDataFromSupabase() {
             try {
-                const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes] = await Promise.all([
+                const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes, delRes, tipRes, eqRes] = await Promise.all([
                     supabaseClient.from('departamentos').select('*'),
                     supabaseClient.from('categorias_competencia').select('*'),
                     supabaseClient.from('competencias').select('*'),
                     supabaseClient.from('funcoes').select('*'),
                     supabaseClient.from('requisitos_funcao').select('*'),
                     supabaseClient.from('colaboradores').select('*'),
-                    supabaseClient.from('avaliacoes_colaborador').select('*')
+                    supabaseClient.from('avaliacoes_colaborador').select('*'),
+                    supabaseClient.from('delegacoes').select('*'),
+                    supabaseClient.from('tipo').select('*'),
+                    supabaseClient.from('equipas').select('*')
                 ]);
 
                 dbData.departamentos = dRes.data || [];
@@ -472,6 +494,10 @@
                 dbData.requisitos = rRes.data || [];
                 dbData.colaboradores = colRes.data || [];
                 dbData.avaliacoes = aRes.data || [];
+                dbData.delegacoes = delRes.data || [];
+                dbData.tipo = tipRes.data || [];
+                dbData.equipas = eqRes.data || [];
+
                 renderAllUI();
             } catch (e) {
                 console.error("Erro a carregar tabelas do Supabase:", e);
@@ -512,7 +538,7 @@
             renderMatrixTable();
             renderColaboradorDropdown();
             renderColaboradorProfile();
-            populateFormDropdowns();
+            populateRegistoFormDropdowns();
         }
 
         function updateOverviewStats() {
@@ -839,7 +865,7 @@
             }
 
             const colab = dbData.colaboradores.find(c => c.id == colabId);
-            const deptId = colab.departamento_id;
+            const deptId = colab ? colab.departamento_id : null;
             const dept = dbData.departamentos.find(d => d.id == deptId) || { nome: 'N/A' };
 
             const deptFuncoes = dbData.funcoes.filter(f => f.departamento_id == deptId);
@@ -918,7 +944,7 @@
                     <tr class="hover:bg-slate-50">
                         <td class="p-3 text-slate-500 text-[11px]">${comp.categoriaNome}</td>
                         <td class="p-3 font-semibold text-slate-800">${comp.nome}</td>
-                        <td class="p-3 text-center" title="Nível requerido para ${funcaoAcima.designacao}">${getLevelBadge(reqLvl, false)}</td>
+                        <td class="p-3 text-center" title="Próximo nível para ${funcaoAcima.designacao}">${getLevelBadge(reqLvl, false)}</td>
                         <td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition rounded group" onclick="handleColabEvalCellClick(${colab.id}, ${comp.id}, ${currLvl})" title="Clique para editar nível atual">
                             <div class="relative">${getLevelBadge(currLvl, false)}<span class="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-[10px] text-schmitt-blue font-bold">✎</span></div>
                         </td>
@@ -929,50 +955,80 @@
             }).join('');
         }
 
-        function populateFormDropdowns() {
-            const colabSelect = document.getElementById('form-colab-id');
-            const currentColab = colabSelect.value;
+        function populateRegistoFormDropdowns() {
+            const funcaoSelect = document.getElementById('reg-funcao');
+            funcaoSelect.innerHTML = dbData.funcoes.map(f => `<option value="${f.id}">${f.designacao}</option>`).join('');
 
-            const sortedColabs = [...dbData.colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
-            colabSelect.innerHTML = sortedColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            
-            if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
-                colabSelect.value = currentColab;
-            } else if (sortedColabs.length > 0) {
-                colabSelect.selectedIndex = 0;
-            }
-
-            onFormColabChange();
+            const delegacaoSelect = document.getElementById('reg-delegacao');
+            delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' + 
+                dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona} - ${d.designacao || 'Delegação'}</option>`).join('');
         }
 
-        function onFormColabChange() {
-            const colabId = document.getElementById('form-colab-id').value;
-            const colab = dbData.colaboradores.find(c => c.id == colabId);
-            const deptId = colab ? colab.departamento_id : null;
+        function loadTiposForDelegacao() {
+            const delegacaoId = document.getElementById('reg-delegacao').value;
+            const tipoSelect = document.getElementById('reg-tipo');
+            const equipaSelect = document.getElementById('reg-equipa');
 
-            const catSelect = document.getElementById('form-cat-id');
-            let deptCats = dbData.categorias;
-            if (deptId) {
-                deptCats = deptCats.filter(cat => cat.departamento_id == deptId);
+            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+
+            if (!delegacaoId) {
+                tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>';
+                return;
             }
-            deptCats.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            catSelect.innerHTML = deptCats.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
-            
-            loadFormCompetenciesForCategory();
+            const tiposFiltrados = dbData.tipo.filter(t => t.delegacao_id == delegacaoId);
+            tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>' + 
+                tiposFiltrados.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
         }
 
-        function loadFormCompetenciesForCategory() {
-            const catId = document.getElementById('form-cat-id').value;
-            const compSelect = document.getElementById('form-comp-id');
+        function loadEquipasForTipo() {
+            const tipoId = document.getElementById('reg-tipo').value;
+            const equipaSelect = document.getElementById('reg-equipa');
 
-            let comps = dbData.competencias;
-            if (catId) {
-                comps = comps.filter(c => c.categoria_id == catId);
+            if (!tipoId) {
+                equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+                return;
             }
-            comps.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            compSelect.innerHTML = comps.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            const equipasFiltradas = dbData.equipas.filter(e => e.tipo_id == tipoId);
+            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' + 
+                equipasFiltradas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+        }
+
+        async function handleSaveColaborador(e) {
+            e.preventDefault();
+            const nome = document.getElementById('reg-nome').value.trim();
+            const numMec = document.getElementById('reg-num-mec').value ? parseInt(document.getElementById('reg-num-mec').value) : null;
+            const email = document.getElementById('reg-email').value.trim();
+            const funcaoId = document.getElementById('reg-funcao').value ? parseInt(document.getElementById('reg-funcao').value) : null;
+            const equipaId = document.getElementById('reg-equipa').value ? parseInt(document.getElementById('reg-equipa').value) : null;
+            const feedback = document.getElementById('form-feedback');
+
+            if (!nome) return;
+
+            if (isOnlineSupabase && supabaseClient) {
+                try {
+                    const payload = {
+                        nome: nome,
+                        num_mec: numMec,
+                        email: email,
+                        funcao_atual_id: funcaoId,
+                        equipa_id: equipaId
+                    };
+
+                    const { error } = await supabaseClient.from('colaboradores').insert(payload);
+                    if (error) throw error;
+
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                    feedback.innerText = "Colaborador registado com sucesso na base de dados!";
+                    
+                    document.getElementById('form-colab-registo').reset();
+                    await fetchAllDataFromSupabase();
+                } catch (err) {
+                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
+                    feedback.innerText = "Erro ao registar colaborador: " + err.message;
+                }
+            }
         }
 
         function getSvgCircle(nivel, size = 18) {
@@ -1120,41 +1176,6 @@
             }
         }
 
-        async function handleSaveEvaluation(e) {
-            e.preventDefault();
-            const colabId = document.getElementById('form-colab-id').value;
-            const compId = document.getElementById('form-comp-id').value;
-            const level = parseInt(document.getElementById('form-level').value, 10);
-            const feedback = document.getElementById('form-feedback');
-
-            if (!colabId || !compId) return;
-
-            if (isOnlineSupabase && supabaseClient) {
-                try {
-                    const existing = dbData.avaliacoes.find(a => a.colaborador_id == colabId && a.competencia_id == compId);
-                    if (existing) {
-                        const { error } = await supabaseClient
-                            .from('avaliacoes_colaborador')
-                            .update({ nivel_atual: level })
-                            .eq('id', existing.id);
-                        if (error) throw error;
-                    } else {
-                        const { error } = await supabaseClient
-                            .from('avaliacoes_colaborador')
-                            .insert({ colaborador_id: colabId, competencia_id: compId, nivel_atual: level });
-                        if (error) throw error;
-                    }
-
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
-                    feedback.innerText = "Avaliação guardada com sucesso no Supabase!";
-                    await fetchAllDataFromSupabase();
-                } catch (err) {
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
-                    feedback.innerText = "Erro ao guardar: " + err.message;
-                }
-            }
-        }
-
         function switchTab(tabId) {
             ['dashboard', 'matrix', 'colab', 'eval'].forEach(t => {
                 const page = document.getElementById(`tab-${t}`);
@@ -1185,7 +1206,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
-                    <span>Editar Nível Requerido</span>
+                    <span>Editar Próximo Nível</span>
                 </h3>
                 <button onclick="closeCustomModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
             </div>
