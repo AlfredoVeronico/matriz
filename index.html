@@ -1052,23 +1052,24 @@ function onTopoSelectChange() {
                 tiposFiltrados.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
         }
 
-        function loadEquipasForTipo() {
-            const tipoSelect = document.getElementById('reg-tipo');
-            const equipaSelect = document.getElementById('reg-equipa');
+function loadEquipasForTipo() {
+    const tipoSelect = document.getElementById('reg-tipo'); // Este select agora lista os departamentos da delegação
+    const equipaSelect = document.getElementById('reg-equipa');
 
-            if (!equipaSelect) return;
+    if (!equipaSelect) return;
 
-            if (!tipoSelect || tipoSelect.value === "") {
-                equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
-                return;
-            }
+    if (!tipoSelect || tipoSelect.value === "") {
+        equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+        return;
+    }
 
-            const tipoId = tipoSelect.value;
-            const equipasFiltradas = dbData.equipas.filter(e => String(e.tipo_id) === String(tipoId));
+    const departamentoId = tipoSelect.value;
+    // Filtra as equipas utilizando o novo campo departamento_id
+    const equipasFiltradas = dbData.equipas.filter(e => String(e.departamento_id) === String(departamentoId));
 
-            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' + 
-                equipasFiltradas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
-        }
+    equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' + 
+        equipasFiltradas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+}
 
         async function handleSaveColaborador(e) {
             e.preventDefault();
