@@ -994,38 +994,50 @@
             const containerDelegacao = document.getElementById('container-reg-delegacao');
             const containerTipo = document.getElementById('container-reg-tipo');
             const containerEquipa = document.getElementById('container-reg-equipa');
+            const tipoSelect = document.getElementById('reg-tipo');
 
             if (topoId == 1) { // 1 = Sede
-                containerDelegacao.innerHTML = `
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Departamento (Sede)</label>
-                    <select id="reg-sede-dept" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                        ${dbData.sede.length > 0 
-                            ? dbData.sede.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
-                            : dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('')
-                        }
-                    </select>
-                `;
-                if (containerTipo) containerTipo.classList.add('hidden');
-                if (containerEquipa) containerEquipa.classList.add('hidden');
-            } else { // 2 = Delegações
-                const delegacoesOptions = dbData.delegacoes.length > 0
-                    ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('')
-                    : '<option value="">⚠️ Sem dados na tabela delegacoes</option>';
+                // Esconde delegação e equipa, pois a Sede não utiliza delegações ou equipas de campo
+                if (containerDelegacao) containerDelegacao.style.display = 'none';
+                if (containerEquipa) containerEquipa.style.display = 'none';
+                if (containerTipo) containerTipo.style.display = 'block';
 
-                containerDelegacao.innerHTML = `
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
-                    <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                        <option value="">Selecione a Delegação...</option>
-                        ${delegacoesOptions}
-                    </select>
-                `;
-                if (containerTipo) containerTipo.classList.remove('hidden');
-                if (containerEquipa) containerEquipa.classList.remove('hidden');
-                
-                const tipoSelect = document.getElementById('reg-tipo');
+                // Relaciona diretamente o Tipo / Departamento com os dados da Sede
+                if (tipoSelect) {
+                    const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
+                    tipoSelect.innerHTML = '<option value="">Selecione o Departamento (Sede)...</option>' + 
+                        sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+                    
+                    tipoSelect.onchange = function() {
+                        loadFuncoesForDepartamento();
+                    };
+                }
+            } else { // 2 = Delegações
+                if (containerDelegacao) containerDelegacao.style.display = 'block';
+                if (containerEquipa) containerEquipa.style.display = 'block';
+                if (containerTipo) containerTipo.style.display = 'block';
+
+                const delegacaoSelect = document.getElementById('reg-delegacao');
+                if (delegacaoSelect) {
+                    const delegacoesOptions = dbData.delegacoes.length > 0
+                        ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('')
+                        : '<option value="">⚠️ Sem dados na tabela delegacoes</option>';
+                    
+                    delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' + delegacoesOptions;
+                }
+
+                if (tipoSelect) {
+                    tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
+                    tipoSelect.onchange = function() {
+                        loadEquipasForTipo();
+                        loadFuncoesForDepartamento();
+                    };
+                }
+
                 const equipaSelect = document.getElementById('reg-equipa');
-                if (tipoSelect) tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>';
-                if (equipaSelect) equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+                if (equipaSelect) {
+                    equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+                }
             }
         }
 
@@ -1038,15 +1050,18 @@
             if (equipaSelect) equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
 
             if (!delegacaoSelect || delegacaoSelect.value === "") {
-                tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>';
+                tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
                 return;
             }
 
             const delegacaoId = delegacaoSelect.value;
-            // Filtra os departamentos que pertencem à delegação selecionada
-            const departamentosFiltrados = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
+            let departamentosFiltrados = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
+            
+            if (departamentosFiltrados.length === 0) {
+                departamentosFiltrados = dbData.departamentos; // Fallback de segurança
+            }
 
-            tipoSelect.innerHTML = '<option value="">Selecione o Tipo...</option>' + 
+            tipoSelect.innerHTML = '<option value="">Selecione o Tipo / Departamento...</option>' + 
                 departamentosFiltrados.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 
             loadFuncoesForDepartamento();
@@ -1097,6 +1112,9 @@
             const funcaoId = document.getElementById('reg-funcao').value ? parseInt(document.getElementById('reg-funcao').value) : null;
             
             const topoId = document.getElementById('reg-topo').value;
+            const tipoEl = document.getElementById('reg-tipo');
+            const departamentoId = (tipoEl && tipoEl.value) ? parseInt(tipoEl.value) : null;
+
             const equipaEl = document.getElementById('reg-equipa');
             const equipaId = (topoId == 2 && equipaEl && equipaEl.value) ? parseInt(equipaEl.value) : null;
             
@@ -1111,6 +1129,7 @@
                         num_mec: numMec,
                         email: email,
                         funcao_atual_id: funcaoId,
+                        departamento_id: departamentoId,
                         equipa_id: equipaId
                     };
 
