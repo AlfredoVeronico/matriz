@@ -286,7 +286,45 @@
         <!-- TAB 2: CONSULTA DE COLABORADORES & GAP ANALYSIS (MATRIZ DE COLABORADORES) -->
         <div id="tab-colab" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                
+                <!-- Filtro Organizacional / Equipa igual ao Registo de Colaboradores -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="sitemap" class="w-4 h-4 text-schmitt-blue"></i>
+                        <span>Filtro Organizacional / Equipa</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Estrutura de Topo</label>
+                            <select id="colab-filter-topo" onchange="onColabTopoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
+                                <option value="ALL">Todas as Estruturas</option>
+                            </select>
+                        </div>
+                        
+                        <div id="container-colab-filter-delegacao">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
+                            <select id="colab-filter-delegacao" onchange="onColabDelegacaoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <option value="ALL">Todas as Delegações</option>
+                            </select>
+                        </div>
+
+                        <div id="container-colab-filter-tipo">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo / Departamento</label>
+                            <select id="colab-filter-tipo" onchange="onColabTipoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <option value="ALL">Todos os Departamentos</option>
+                            </select>
+                        </div>
+
+                        <div id="container-colab-filter-equipa">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Equipa Nº</label>
+                            <select id="colab-filter-equipa" onchange="onColabEquipaFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
+                                <option value="ALL">Todas as Equipas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-1">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Ficha Individual do Colaborador</h2>
                         <p class="text-xs text-slate-500">Comparação do perfil real com a Função-Alvo (acima da atual) para cálculo de necessidades de formação.</p>
@@ -512,8 +550,6 @@
                 dbData.delegacoes = delRes.data || [];
                 dbData.equipas = eqRes.data || [];
 
-                console.log("Dados carregados com sucesso. Departamentos:", dbData.departamentos.length);
-
                 renderAllUI();
             } catch (e) {
                 console.error("Erro geral a carregar tabelas do Supabase:", e);
@@ -552,6 +588,7 @@
             populateDropdownFilters();
             populateDashboardDropdowns();
             renderMatrixTable();
+            initColabOrgFilters();
             renderColaboradorDropdown();
             renderColaboradorProfile();
             populateRegistoFormDropdowns();
@@ -823,14 +860,149 @@
             }).join('');
         }
 
+        // --- FILTRO ORGANIZACIONAL NA MATRIZ DE COLABORADORES ---
+        function initColabOrgFilters() {
+            const topoSelect = document.getElementById('colab-filter-topo');
+            if (!topoSelect) return;
+
+            const currentTopo = topoSelect.value;
+            topoSelect.innerHTML = '<option value="ALL">Todas as Estruturas</option>' + 
+                dbData.topo.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
+            
+            if (currentTopo && Array.from(topoSelect.options).some(o => o.value == currentTopo)) {
+                topoSelect.value = currentTopo;
+            }
+
+            const delegacaoSelect = document.getElementById('colab-filter-delegacao');
+            if (delegacaoSelect) {
+                delegacaoSelect.innerHTML = '<option value="ALL">Todas as Delegações</option>' + 
+                    dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('');
+            }
+
+            const tipoSelect = document.getElementById('colab-filter-tipo');
+            if (tipoSelect) {
+                tipoSelect.innerHTML = '<option value="ALL">Todos os Departamentos</option>' + 
+                    dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+            }
+
+            const equipaSelect = document.getElementById('colab-filter-equipa');
+            if (equipaSelect) {
+                equipaSelect.innerHTML = '<option value="ALL">Todas as Equipas</option>' + 
+                    dbData.equipas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+            }
+        }
+
+        function onColabTopoFilterChange() {
+            const topoId = document.getElementById('colab-filter-topo').value;
+            const containerDelegacao = document.getElementById('container-colab-filter-delegacao');
+            const containerEquipa = document.getElementById('container-colab-filter-equipa');
+            const tipoSelect = document.getElementById('colab-filter-tipo');
+
+            if (topoId == '1') { // Sede
+                if (containerDelegacao) containerDelegacao.style.display = 'none';
+                if (containerEquipa) containerEquipa.style.display = 'none';
+                
+                const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
+                tipoSelect.innerHTML = '<option value="ALL">Todos os Departamentos (Sede)</option>' + 
+                    sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+            } else {
+                if (containerDelegacao) containerDelegacao.style.display = 'block';
+                if (containerEquipa) containerEquipa.style.display = 'block';
+
+                const delegacaoSelect = document.getElementById('colab-filter-delegacao');
+                delegacaoSelect.value = 'ALL';
+                onColabDelegacaoFilterChange();
+            }
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+        }
+
+        function onColabDelegacaoFilterChange() {
+            const delegacaoId = document.getElementById('colab-filter-delegacao').value;
+            const tipoSelect = document.getElementById('colab-filter-tipo');
+            const equipaSelect = document.getElementById('colab-filter-equipa');
+
+            let deptList = dbData.departamentos;
+            if (delegacaoId !== 'ALL') {
+                const filtered = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
+                if (filtered.length > 0) deptList = filtered;
+            }
+
+            tipoSelect.innerHTML = '<option value="ALL">Todos os Departamentos</option>' + 
+                deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+            
+            equipaSelect.innerHTML = '<option value="ALL">Todas as Equipas</option>';
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+        }
+
+        function onColabTipoFilterChange() {
+            const deptId = document.getElementById('colab-filter-tipo').value;
+            const equipaSelect = document.getElementById('colab-filter-equipa');
+
+            let eqList = dbData.equipas;
+            if (deptId !== 'ALL') {
+                eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
+            }
+
+            equipaSelect.innerHTML = '<option value="ALL">Todas as Equipas</option>' + 
+                eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+        }
+
+        function onColabEquipaFilterChange() {
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+        }
+
         function renderColaboradorDropdown() {
             const select = document.getElementById('colab-select');
             const currentSelected = select.value;
-            const sortedColabs = [...dbData.colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
-            select.innerHTML = sortedColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            if (Array.from(select.options).some(o => o.value === currentSelected)) {
-                select.value = currentSelected;
+
+            const topoFilter = document.getElementById('colab-filter-topo')?.value || 'ALL';
+            const delFilter = document.getElementById('colab-filter-delegacao')?.value || 'ALL';
+            const deptFilter = document.getElementById('colab-filter-tipo')?.value || 'ALL';
+            const eqFilter = document.getElementById('colab-filter-equipa')?.value || 'ALL';
+
+            let filteredColabs = [...dbData.colaboradores];
+
+            if (topoFilter === '1') {
+                filteredColabs = filteredColabs.filter(c => !c.equipa_id);
+            } else if (topoFilter === '2') {
+                filteredColabs = filteredColabs.filter(c => c.equipa_id !== null);
             }
+
+            if (delFilter !== 'ALL' && topoFilter !== '1') {
+                const deptIdsInDel = dbData.departamentos
+                    .filter(d => String(d.delegacao_id) === String(delFilter))
+                    .map(d => String(d.id));
+                
+                if (deptIdsInDel.length > 0) {
+                    filteredColabs = filteredColabs.filter(c => deptIdsInDel.includes(String(c.departamento_id)));
+                }
+            }
+
+            if (deptFilter !== 'ALL') {
+                filteredColabs = filteredColabs.filter(c => String(c.departamento_id) === String(deptFilter));
+            }
+
+            if (eqFilter !== 'ALL' && topoFilter !== '1') {
+                filteredColabs = filteredColabs.filter(c => String(c.equipa_id) === String(eqFilter));
+            }
+
+            filteredColabs.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            if (filteredColabs.length === 0) {
+                select.innerHTML = '<option value="">Sem colaboradores neste filtro</option>';
+            } else {
+                select.innerHTML = filteredColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+                if (Array.from(select.options).some(o => o.value === currentSelected)) {
+                    select.value = currentSelected;
+                }
+            }
+
             populateColabCategoryFilter();
         }
 
@@ -875,14 +1047,25 @@
             const tbody = document.getElementById('colab-skills-tbody');
 
             if (!colabId) {
-                card.innerHTML = `<span class="text-slate-400 text-xs">Nenhum colaborador selecionado.</span>`;
+                card.innerHTML = `<span class="text-slate-400 text-xs">Nenhum colaborador selecionado para os filtros atuais.</span>`;
                 tbody.innerHTML = '';
                 return;
             }
 
             const colab = dbData.colaboradores.find(c => c.id == colabId);
-            const deptId = colab ? colab.departamento_id : null;
+            if (!colab) return;
+
+            const deptId = colab.departamento_id;
             const dept = dbData.departamentos.find(d => d.id == deptId) || { nome: 'N/A' };
+
+            // Identifica informação de Equipa / Delegação caso exista
+            let orgBadgeText = dept.nome;
+            if (colab.equipa_id) {
+                const eqObj = dbData.equipas.find(e => e.id == colab.equipa_id);
+                if (eqObj) {
+                    orgBadgeText += ` • Equipa ${eqObj.numero_equipa}`;
+                }
+            }
 
             const deptFuncoes = dbData.funcoes.filter(f => f.departamento_id == deptId);
             const currentFuncaoIndex = deptFuncoes.findIndex(f => f.id == colab.funcao_atual_id);
@@ -917,7 +1100,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm">${colab.nome}</h3>
-                        <p class="text-xs text-slate-500">Atual: <b class="text-slate-700">${funcaoAtual.designacao}</b> ➔ Alvo (Seguinte): <b class="text-emerald-700">${funcaoAcima.designacao}</b> • ${dept.nome}</p>
+                        <p class="text-xs text-slate-500">Atual: <b class="text-slate-700">${funcaoAtual.designacao}</b> ➔ Alvo (Seguinte): <b class="text-emerald-700">${funcaoAcima.designacao}</b> • ${orgBadgeText}</p>
                     </div>
                 </div>
 
@@ -997,12 +1180,10 @@
             const tipoSelect = document.getElementById('reg-tipo');
 
             if (topoId == 1) { // 1 = Sede
-                // Esconde delegação e equipa, pois a Sede não utiliza delegações ou equipas de campo
                 if (containerDelegacao) containerDelegacao.style.display = 'none';
                 if (containerEquipa) containerEquipa.style.display = 'none';
                 if (containerTipo) containerTipo.style.display = 'block';
 
-                // Relaciona diretamente o Tipo / Departamento com os dados da Sede
                 if (tipoSelect) {
                     const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
                     tipoSelect.innerHTML = '<option value="">Selecione o Departamento (Sede)...</option>' + 
@@ -1058,7 +1239,7 @@
             let departamentosFiltrados = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
             
             if (departamentosFiltrados.length === 0) {
-                departamentosFiltrados = dbData.departamentos; // Fallback de segurança
+                departamentosFiltrados = dbData.departamentos;
             }
 
             tipoSelect.innerHTML = '<option value="">Selecione o Tipo / Departamento...</option>' + 
