@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js para o Gráfico Radar -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase JS Client v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
@@ -65,11 +63,11 @@
                     </div>
                 </div>
 
-                <!-- Database Status Badge (Apenas leitura) -->
+                <!-- Database Status Badge -->
                 <div class="flex items-center space-x-3">
                     <div id="connection-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span id="status-text">A Conectar ao Supabase...</span>
+                        <span id="status-text">A Conectar ao Servidor...</span>
                     </div>
                 </div>
             </div>
@@ -177,13 +175,11 @@
 
         <!-- TAB 0: DASHBOARD & ANÁLISE DE GAPS -->
         <div id="tab-dashboard" class="space-y-6">
-            <!-- 4 Cartões Superiores -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Colaborador em Avaliação</span>
                     <div class="mt-2">
                         <select id="dash-colab-select" onchange="onDashboardColabChange()" class="w-full text-lg font-extrabold text-schmitt-darkBlue bg-transparent focus:outline-none cursor-pointer border-b border-schmitt-blue/30 pb-1">
-                            <!-- Populated dynamically -->
                         </select>
                     </div>
                     <p id="dash-colab-role-dept" class="text-xs text-slate-500 mt-3">Função • Departamento</p>
@@ -193,7 +189,6 @@
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cargo Alvo (Análise)</span>
                     <div class="mt-2">
                         <select id="dash-target-role-select" onchange="renderDashboard()" class="w-full text-lg font-extrabold text-emerald-700 bg-transparent focus:outline-none cursor-pointer border-b border-emerald-300 pb-1">
-                            <!-- Populated dynamically -->
                         </select>
                     </div>
                     <p class="text-xs text-slate-500 mt-3">Nível funcional de avaliação</p>
@@ -216,7 +211,6 @@
                 </div>
             </div>
 
-            <!-- Gráfico & Gaps em Detalhe -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -234,16 +228,15 @@
                             <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500"></i>
                             Necessidades de Formação (Gaps)
                         </span>
-                        <span class="text-xs font-normal text-slate-400">Base de Dados Supabase</span>
+                        <span class="text-xs font-normal text-slate-400">Servidor Seguro (Vercel)</span>
                     </h3>
                     <div id="dash-gap-list" class="space-y-3 overflow-y-auto max-h-72 custom-scrollbar pr-2 flex-grow">
-                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 1: MATRIZ DE REQUISITOS (CONSULTA GERAL) -->
+        <!-- TAB 1: MATRIZ DE REQUISITOS -->
         <div id="tab-matrix" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -269,25 +262,17 @@
 
                 <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
                     <table class="w-full text-left text-xs border-collapse">
-                        <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="matrix-thead">
-                            <!-- Populated dynamically -->
-                        </thead>
-                        <tbody id="matrix-tbody" class="divide-y divide-slate-100 bg-white">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="matrix-thead"></thead>
+                        <tbody id="matrix-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 2: CONSULTA DE COLABORADORES & GAP ANALYSIS (MATRIZ DE COLABORADORES) -->
+        <!-- TAB 2: MATRIZ DE COLABORADORES -->
         <div id="tab-colab" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
-                
-                <!-- Grupo Unificado: Cabeçalho -> Filtro Organizacional -> Seleção de Colaborador -> Ficha Resumo -->
                 <div class="p-4 sm:p-5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-4">
-                    
-                    <!-- Cabeçalho -->
                     <div class="border-b border-slate-200/80 pb-3">
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i data-lucide="user-check" class="w-4 h-4 text-schmitt-blue"></i>
@@ -296,7 +281,6 @@
                         <p class="text-xs text-slate-500 mt-0.5">Selecione a estrutura/equipa para filtrar os colaboradores e comparar o perfil real com a Função-Alvo.</p>
                     </div>
 
-                    <!-- 1. Filtro Organizacional / Equipa -->
                     <div class="space-y-2.5">
                         <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                             <i data-lucide="sitemap" class="w-3.5 h-3.5 text-schmitt-blue"></i>
@@ -305,9 +289,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Estrutura de Topo</label>
-                                <select id="colab-filter-topo" onchange="onColabTopoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
-                                    <!-- Populated dynamically -->
-                                </select>
+                                <select id="colab-filter-topo" onchange="onColabTopoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
                             </div>
                             
                             <div id="container-colab-filter-delegacao">
@@ -333,7 +315,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. Seleção do Colaborador (Condicionado à Equipa) e Categoria -->
                     <div class="pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Colaborador da Equipa</label>
@@ -349,13 +330,9 @@
                         </div>
                     </div>
 
-                    <!-- 3. Cartão de Resumo do Colaborador Selecionado -->
-                    <div id="colab-info-card" class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-sm flex flex-wrap justify-between items-center gap-4">
-                        <!-- Populated dynamically -->
-                    </div>
+                    <div id="colab-info-card" class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-sm flex flex-wrap justify-between items-center gap-4"></div>
                 </div>
 
-                <!-- Tabela de Competências -->
                 <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
@@ -368,9 +345,7 @@
                                 <th class="p-3">Plano de Ação Sugerido</th>
                             </tr>
                         </thead>
-                        <tbody id="colab-skills-tbody" class="divide-y divide-slate-100 bg-white">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="colab-skills-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
                     </table>
                 </div>
             </div>
@@ -388,8 +363,6 @@
                 </div>
 
                 <form id="form-colab-registo" onsubmit="handleSaveColaborador(event)" class="space-y-6">
-                    
-                    <!-- Atribuição Organizacional / Equipa no Topo -->
                     <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="sitemap" class="w-4 h-4 text-schmitt-blue"></i>
@@ -398,9 +371,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Estrutura de Topo</label>
-                                <select id="reg-topo" onchange="onTopoSelectChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
-                                    <!-- Populated dynamically -->
-                                </select>
+                                <select id="reg-topo" onchange="onTopoSelectChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
                             </div>
                             
                             <div id="container-reg-delegacao">
@@ -426,7 +397,6 @@
                         </div>
                     </div>
 
-                    <!-- Campos Pessoais do Colaborador -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Colaborador</label>
@@ -442,16 +412,14 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Função Atual</label>
-                            <select id="reg-funcao" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
-                                <!-- Populated dynamically -->
-                            </select>
+                            <select id="reg-funcao" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none"></select>
                         </div>
                     </div>
 
                     <div class="pt-2 flex justify-end">
                         <button type="submit" class="px-5 py-2.5 bg-schmitt-blue text-white rounded-xl text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
                             <i data-lucide="save" class="w-4 h-4"></i>
-                            <span>Guardar Colaborador no Supabase</span>
+                            <span>Guardar Colaborador</span>
                         </button>
                     </div>
                 </form>
@@ -462,21 +430,11 @@
 
     </div>
 
-    <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
         <p>© Schmitt + Sohn Elevadores — Dashboard de Matriz de Competências</p>
     </footer>
 
-    <!-- SCRIPT APPLICATION CORE LOGIC -->
     <script>
-        // =========================================================================
-        // CREDENCIAIS DO SUPABASE FIXAS NO CÓDIGO (PREENCHA AQUI OS SEUS DADOS)
-        // =========================================================================
-        const SUPABASE_URL = 'https://gzcofcwatkvzulzqmofv.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_Blk724DEiYhPTQhaxXn5GA_OLDB9yOU';
-        // =========================================================================
-
-        let supabaseClient = null;
         let isOnlineSupabase = false;
         let radarChart = null;
         
@@ -498,7 +456,7 @@
             lucide.createIcons();
             renderLegendCircles();
             initRadarChart();
-            initSupabaseDirect();
+            fetchAllDataFromSupabase();
         };
 
         function renderLegendCircles() {
@@ -508,62 +466,45 @@
             }
         }
 
-        async function initSupabaseDirect() {
-            if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('O_SEU_PROJETO')) {
-                updateStatusBadge('offline', 'Credenciais não definidas no código');
-                return;
-            }
-            await tryConnectSupabase(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-
-        async function tryConnectSupabase(url, key) {
+        async function fetchAllDataFromSupabase() {
             try {
-                updateStatusBadge('connecting', 'A Ligar...');
-                supabaseClient = window.supabase.createClient(url, key);
-                const { data, error } = await supabaseClient.from('departamentos').select('*');
-                if (error) throw error;
+                updateStatusBadge('connecting', 'A Ligar ao Servidor...');
+                const res = await fetch('/api/dados');
+                if (!res.ok) throw new Error('Falha na resposta da API');
+
+                const data = await res.json();
+
+                dbData.departamentos = data.departamentos || [];
+                dbData.categorias = data.categorias_competencia || [];
+                dbData.competencias = data.competencias || [];
+                dbData.funcoes = data.funcoes || [];
+                dbData.requisitos = data.requisitos_funcao || [];
+                dbData.colaboradores = data.colaboradores || [];
+                dbData.avaliacoes = data.avaliacoes_colaborador || [];
+                dbData.topo = (data.topo && data.topo.length > 0) ? data.topo : [{id: 1, nome: 'Sede'}, {id: 2, nome: 'Delegações'}];
+                dbData.sede = data.sede || [];
+                dbData.delegacoes = data.delegacoes || [];
+                dbData.equipas = data.equipas || [];
 
                 isOnlineSupabase = true;
-                updateStatusBadge('online', 'Ligado');
-                await fetchAllDataFromSupabase();
-            } catch (err) {
-                console.warn('Erro ao ligar ao Supabase:', err);
+                updateStatusBadge('online', 'Ligado (Servidor Seguro)');
+                renderAllUI();
+            } catch (e) {
+                console.error("Erro a carregar dados via /api/dados:", e);
                 isOnlineSupabase = false;
                 updateStatusBadge('offline', 'Erro de Conexão');
             }
         }
 
-        async function fetchAllDataFromSupabase() {
-            try {
-                const [dRes, cCatRes, cCompRes, fRes, rRes, colRes, aRes, topRes, sedeRes, delRes, eqRes] = await Promise.all([
-                    supabaseClient.from('departamentos').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('categorias_competencia').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('competencias').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('funcoes').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('requisitos_funcao').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('colaboradores').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('avaliacoes_colaborador').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('topo').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('sede').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('delegacoes').select('*').then(res => res, err => ({ data: [], error: err })),
-                    supabaseClient.from('equipas').select('*').then(res => res, err => ({ data: [], error: err }))
-                ]);
-
-                dbData.departamentos = dRes.data || [];
-                dbData.categorias = cCatRes.data || [];
-                dbData.competencias = cCompRes.data || [];
-                dbData.funcoes = fRes.data || [];
-                dbData.requisitos = rRes.data || [];
-                dbData.colaboradores = colRes.data || [];
-                dbData.avaliacoes = aRes.data || [];
-                dbData.topo = topRes.data && topRes.data.length > 0 ? topRes.data : [{id: 1, nome: 'Sede'}, {id: 2, nome: 'Delegações'}];
-                dbData.sede = sedeRes.data || [];
-                dbData.delegacoes = delRes.data || [];
-                dbData.equipas = eqRes.data || [];
-
-                renderAllUI();
-            } catch (e) {
-                console.error("Erro geral a carregar tabelas do Supabase:", e);
+        async function mutateDatabase(tabela, acao, payload, id = null) {
+            const res = await fetch('/api/mutacao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tabela, acao, payload, id })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || 'Erro ao guardar alteração.');
             }
         }
 
@@ -867,7 +808,7 @@
             if (currentTopo && Array.from(topoSelect.options).some(o => o.value == currentTopo)) {
                 topoSelect.value = currentTopo;
             } else {
-                topoSelect.value = 2; // Delegações por defeito
+                topoSelect.value = 2;
             }
 
             onColabTopoFilterChange();
@@ -879,7 +820,7 @@
             const containerEquipa = document.getElementById('container-colab-filter-equipa');
             const tipoSelect = document.getElementById('colab-filter-tipo');
 
-            if (topoId == '1') { // Sede
+            if (topoId == '1') {
                 if (containerDelegacao) containerDelegacao.style.display = 'none';
                 if (containerEquipa) containerEquipa.style.display = 'none';
                 
@@ -889,7 +830,7 @@
                 
                 renderColaboradorDropdown();
                 renderColaboradorProfile();
-            } else { // Delegações
+            } else {
                 if (containerDelegacao) containerDelegacao.style.display = 'block';
                 if (containerEquipa) containerEquipa.style.display = 'block';
 
@@ -978,13 +919,11 @@
             let filteredColabs = [];
 
             if (topoFilter == '1') {
-                // Sede: colaboradores sem equipa associada
                 filteredColabs = dbData.colaboradores.filter(c => !c.equipa_id);
                 if (deptFilter) {
                     filteredColabs = filteredColabs.filter(c => String(c.departamento_id) === String(deptFilter));
                 }
             } else {
-                // Delegações: estritamente condicionado à Equipa selecionada
                 if (!eqFilter) {
                     select.innerHTML = '<option value="">Selecione primeiro uma Equipa acima...</option>';
                     populateColabCategoryFilter();
@@ -1163,7 +1102,7 @@
             const topoSelect = document.getElementById('reg-topo');
             if (topoSelect) {
                 topoSelect.innerHTML = dbData.topo.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
-                topoSelect.value = 2; // Por defeito Delegações
+                topoSelect.value = 2;
             }
 
             onTopoSelectChange();
@@ -1179,7 +1118,7 @@
             const containerEquipa = document.getElementById('container-reg-equipa');
             const tipoSelect = document.getElementById('reg-tipo');
 
-            if (topoId == 1) { // 1 = Sede
+            if (topoId == 1) {
                 if (containerDelegacao) containerDelegacao.style.display = 'none';
                 if (containerEquipa) containerEquipa.style.display = 'none';
                 if (containerTipo) containerTipo.style.display = 'block';
@@ -1193,7 +1132,7 @@
                         loadFuncoesForDepartamento();
                     };
                 }
-            } else { // 2 = Delegações
+            } else {
                 if (containerDelegacao) containerDelegacao.style.display = 'block';
                 if (containerEquipa) containerEquipa.style.display = 'block';
                 if (containerTipo) containerTipo.style.display = 'block';
@@ -1202,7 +1141,7 @@
                 if (delegacaoSelect) {
                     const delegacoesOptions = dbData.delegacoes.length > 0
                         ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('')
-                        : '<option value="">⚠️ Sem dados na tabela delegacoes</option>';
+                        : '<option value="">Sem dados na tabela delegacoes</option>';
                     
                     delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' + delegacoesOptions;
                 }
@@ -1303,30 +1242,27 @@
 
             if (!nome) return;
 
-            if (isOnlineSupabase && supabaseClient) {
-                try {
-                    const payload = {
-                        nome: nome,
-                        num_mec: numMec,
-                        email: email,
-                        funcao_atual_id: funcaoId,
-                        departamento_id: departamentoId,
-                        equipa_id: equipaId
-                    };
+            try {
+                const payload = {
+                    nome: nome,
+                    num_mec: numMec,
+                    email: email,
+                    funcao_atual_id: funcaoId,
+                    departamento_id: departamentoId,
+                    equipa_id: equipaId
+                };
 
-                    const { error } = await supabaseClient.from('colaboradores').insert(payload);
-                    if (error) throw error;
+                await mutateDatabase('colaboradores', 'insert', payload);
 
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
-                    feedback.innerText = "Colaborador registado com sucesso na base de dados!";
-                    
-                    document.getElementById('form-colab-registo').reset();
-                    populateRegistoFormDropdowns();
-                    await fetchAllDataFromSupabase();
-                } catch (err) {
-                    feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
-                    feedback.innerText = "Erro ao registar colaborador: " + err.message;
-                }
+                feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                feedback.innerText = "Colaborador registado com sucesso!";
+                
+                document.getElementById('form-colab-registo').reset();
+                populateRegistoFormDropdowns();
+                await fetchAllDataFromSupabase();
+            } catch (err) {
+                feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
+                feedback.innerText = "Erro ao registar colaborador: " + err.message;
             }
         }
 
@@ -1404,28 +1340,19 @@
             const newLvl = parseInt(document.getElementById('modal-level-select').value, 10);
             closeCustomModal();
 
-            if (isOnlineSupabase && supabaseClient) {
-                try {
-                    const existing = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == competenciaId);
-                    
-                    if (existing) {
-                        const { error } = await supabaseClient
-                            .from('requisitos_funcao')
-                            .update({ nivel_requerido: newLvl })
-                            .eq('id', existing.id);
-                        if (error) throw error;
-                    } else {
-                        const { error } = await supabaseClient
-                            .from('requisitos_funcao')
-                            .insert({ funcao_id: funcaoId, competencia_id: competenciaId, nivel_requerido: newLvl });
-                        if (error) throw error;
-                    }
-
-                    await fetchAllDataFromSupabase();
-                } catch (err) {
-                    console.error("Erro ao atualizar requisito:", err);
-                    alert("Erro ao atualizar no Supabase: " + err.message);
+            try {
+                const existing = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == competenciaId);
+                
+                if (existing) {
+                    await mutateDatabase('requisitos_funcao', 'update', { nivel_requerido: newLvl }, existing.id);
+                } else {
+                    await mutateDatabase('requisitos_funcao', 'insert', { funcao_id: funcaoId, competencia_id: competenciaId, nivel_requerido: newLvl });
                 }
+
+                await fetchAllDataFromSupabase();
+            } catch (err) {
+                console.error("Erro ao atualizar requisito:", err);
+                alert("Erro ao atualizar: " + err.message);
             }
         }
 
@@ -1450,28 +1377,19 @@
             const newLvl = parseInt(document.getElementById('eval-modal-level-select').value, 10);
             closeEvalModal();
 
-            if (isOnlineSupabase && supabaseClient) {
-                try {
-                    const existing = dbData.avaliacoes.find(a => a.colaborador_id == colaboradorId && a.competencia_id == competenciaId);
-                    
-                    if (existing) {
-                        const { error } = await supabaseClient
-                            .from('avaliacoes_colaborador')
-                            .update({ nivel_atual: newLvl })
-                            .eq('id', existing.id);
-                        if (error) throw error;
-                    } else {
-                        const { error } = await supabaseClient
-                            .from('avaliacoes_colaborador')
-                            .insert({ colaborador_id: colaboradorId, competencia_id: competenciaId, nivel_atual: newLvl });
-                        if (error) throw error;
-                    }
-
-                    await fetchAllDataFromSupabase();
-                } catch (err) {
-                    console.error("Erro ao atualizar avaliação:", err);
-                    alert("Erro ao atualizar no Supabase: " + err.message);
+            try {
+                const existing = dbData.avaliacoes.find(a => a.colaborador_id == colaboradorId && a.competencia_id == competenciaId);
+                
+                if (existing) {
+                    await mutateDatabase('avaliacoes_colaborador', 'update', { nivel_atual: newLvl }, existing.id);
+                } else {
+                    await mutateDatabase('avaliacoes_colaborador', 'insert', { colaborador_id: colaboradorId, competencia_id: competenciaId, nivel_atual: newLvl });
                 }
+
+                await fetchAllDataFromSupabase();
+            } catch (err) {
+                console.error("Erro ao atualizar avaliação:", err);
+                alert("Erro ao atualizar: " + err.message);
             }
         }
 
@@ -1498,7 +1416,7 @@
         }
     </script>
 
-    <!-- Custom Modal Dialog for Editing Requirement Level -->
+    <!-- Modal Edição Requisito -->
     <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1519,17 +1437,13 @@
                 </select>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
-                    Cancelar
-                </button>
-                <button onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
-                    OK
-                </button>
+                <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancelar</button>
+                <button onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">OK</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Edição do Nível Atual do Colaborador -->
+    <!-- Modal Edição Avaliação Colaborador -->
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1550,12 +1464,8 @@
                 </select>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button onclick="closeEvalModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
-                    Cancelar
-                </button>
-                <button onclick="confirmEvalModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">
-                    Guardar
-                </button>
+                <button onclick="closeEvalModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancelar</button>
+                <button onclick="confirmEvalModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">Guardar</button>
             </div>
         </div>
     </div>
