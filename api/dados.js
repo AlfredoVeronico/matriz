@@ -1,14 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido.' });
   }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ error: 'Variáveis SUPABASE_URL ou SUPABASE_KEY em falta na Vercel.' });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   const tabelas = [
     'departamentos',
@@ -31,9 +35,6 @@ export default async function handler(req, res) {
 
     const dados = {};
     tabelas.forEach((tabela, idx) => {
-      if (resultados[idx].error) {
-        console.warn(`Aviso na tabela ${tabela}:`, resultados[idx].error.message);
-      }
       dados[tabela] = resultados[idx].data || [];
     });
 
@@ -41,4 +42,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Erro ao carregar dados.' });
   }
-}
+};
