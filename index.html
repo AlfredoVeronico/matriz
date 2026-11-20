@@ -115,9 +115,7 @@
                     Dashboard &amp; Gaps
                 </p>
             </div>
-            <div class="text-xs text-sky-100/80">
-                <span>Schmitt + Sohn</span>
-            </div>
+
         </div>
     </section>
 
@@ -511,7 +509,7 @@
                 dbData.equipas = data.equipas || [];
 
                 isOnlineSupabase = true;
-                updateStatusBadge('online', 'Ligado (Servidor Seguro)');
+                updateStatusBadge('online', '');
                 renderAllUI();
             } catch (e) {
                 console.error("Erro a carregar dados via /api/dados:", e);
