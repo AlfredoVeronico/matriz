@@ -64,7 +64,7 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Top Navigation Header (Menu com os dizeres da 2ª imagem, estilo da 1ª imagem, sem "intranet") -->
+    <!-- Top Navigation Header -->
     <header class="bg-schmitt-topBar text-white sticky top-0 z-50 border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 gap-4">
@@ -820,6 +820,7 @@
             }).join('');
         }
 
+        // --- FILTRO ORGANIZACIONAL NA MATRIZ DE COLABORADORES (DELEGAÇÃO -> DEPARTAMENTO -> EQUIPA -> COLABORADOR) ---
         function initColabOrgFilters() {
             const topoSelect = document.getElementById('colab-filter-topo');
             if (!topoSelect) return;
@@ -846,7 +847,10 @@
                 if (containerDelegacao) containerDelegacao.style.display = 'none';
                 if (containerEquipa) containerEquipa.style.display = 'none';
 
-                const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
+                const sedeItems = dbData.sede.length > 0
+                    ? dbData.sede
+                    : dbData.departamentos.filter(d => d.topo_id == null || String(d.topo_id) === '1');
+
                 tipoSelect.innerHTML = '<option value="">Todos os Departamentos (Sede)</option>' +
                     sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
 
@@ -868,118 +872,78 @@
             }
         }
 
-function onColabDelegacaoFilterChange() {
-    const delegacaoId = document.getElementById('colab-filter-delegacao').value;
-    const tipoSelect = document.getElementById('colab-filter-tipo');
-    const equipaSelect = document.getElementById('colab-filter-equipa');
-    const colabSelect = document.getElementById('colab-select');
+        function onColabDelegacaoFilterChange() {
+            const delegacaoId = document.getElementById('colab-filter-delegacao').value;
+            const tipoSelect = document.getElementById('colab-filter-tipo');
+            const equipaSelect = document.getElementById('colab-filter-equipa');
+            const colabSelect = document.getElementById('colab-select');
+            const currentTipo = tipoSelect.value;
 
-    equipaSelect.value = '';
-    if (colabSelect) colabSelect.value = '';
+            equipaSelect.value = '';
+            if (colabSelect) colabSelect.value = '';
 
-    if (!delegacaoId) {
-        tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
-        equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
-        renderColaboradorDropdown();
-        renderColaboradorProfile();
-        return;
-    }
-
-    let deptList = dbData.departamentos.filter(d => d.topo_id == null || String(d.topo_id) === '2');
-    if (deptList.length === 0) deptList = dbData.departamentos;
-
-    tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' +
-        deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
-
-    equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
-    renderColaboradorDropdown();
-    renderColaboradorProfile();
-}
-        
-
-function onColabTipoFilterChange() {
-    const topoId = document.getElementById('colab-filter-topo').value;
-    const equipaSelect = document.getElementById('colab-filter-equipa');
-    const colabSelect = document.getElementById('colab-select');
-
-    if (equipaSelect) equipaSelect.value = '';
-    if (colabSelect) colabSelect.value = '';
-
-    if (topoId == '1') {
-        renderColaboradorDropdown();
-        renderColaboradorProfile();
-        return;
-    }
-
-    const deptId = document.getElementById('colab-filter-tipo').value;
-
-    if (!deptId) {
-        equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
-        renderColaboradorDropdown();
-        renderColaboradorProfile();
-        return;
-    }
-
-    const eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
-
-    equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
-        eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
-
-    renderColaboradorDropdown();
-    renderColaboradorProfile();
-}
-
-function renderColaboradorDropdown() {
-    const select = document.getElementById('colab-select');
-    const currentSelected = select.value;
-
-    const topoFilter = document.getElementById('colab-filter-topo')?.value;
-    const deptFilter = document.getElementById('colab-filter-tipo')?.value;
-    const eqFilter = document.getElementById('colab-filter-equipa')?.value;
-
-    let filteredColabs = [];
-
-    if (topoFilter == '1') {
-        filteredColabs = dbData.colaboradores.filter(c => !c.equipa_id);
-        if (deptFilter) {
-            filteredColabs = filteredColabs.filter(c => String(c.departamento_id) === String(deptFilter));
-        }
-    } else {
-        if (!eqFilter) {
-            select.innerHTML = '<option value="">Selecione primeiro uma Equipa acima...</option>';
-            populateColabCategoryFilter();
-            return;
-        }
-
-        const equipaObj = dbData.equipas.find(e => String(e.id) === String(eqFilter));
-
-        filteredColabs = dbData.colaboradores.filter(c => {
-            if (String(c.equipa_id) !== String(eqFilter)) return false;
-
-            const colabDept = c.departamento_id ?? equipaObj?.departamento_id;
-            if (deptFilter && colabDept != null && String(colabDept) !== String(deptFilter)) {
-                return false;
+            if (!delegacaoId) {
+                tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
+                equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+                renderColaboradorDropdown();
+                renderColaboradorProfile();
+                return;
             }
 
-            return true;
-        });
-    }
+            let deptList = dbData.departamentos.filter(d =>
+                (d.delegacao_id != null && String(d.delegacao_id) === String(delegacaoId)) ||
+                (d.delegacao_id == null && (d.topo_id == null || String(d.topo_id) === '2'))
+            );
+            if (deptList.length === 0) deptList = dbData.departamentos;
 
-    filteredColabs.sort((a, b) => a.nome.localeCompare(b.nome));
+            tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' +
+                deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 
-    if (filteredColabs.length === 0) {
-        select.innerHTML = '<option value="">Sem colaboradores nesta equipa</option>';
-    } else {
-        select.innerHTML = filteredColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-        if (Array.from(select.options).some(o => o.value === currentSelected)) {
-            select.value = currentSelected;
-        } else {
-            select.selectedIndex = 0;
+            if (currentTipo && Array.from(tipoSelect.options).some(o => o.value == currentTipo)) {
+                tipoSelect.value = currentTipo;
+                onColabTipoFilterChange();
+            } else {
+                equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
+                renderColaboradorDropdown();
+                renderColaboradorProfile();
+            }
         }
-    }
 
-    populateColabCategoryFilter();
-}
+        function onColabTipoFilterChange() {
+            const topoId = document.getElementById('colab-filter-topo').value;
+            const equipaSelect = document.getElementById('colab-filter-equipa');
+            const colabSelect = document.getElementById('colab-select');
+
+            if (equipaSelect) equipaSelect.value = '';
+            if (colabSelect) colabSelect.value = '';
+
+            if (topoId == '1') {
+                renderColaboradorDropdown();
+                renderColaboradorProfile();
+                return;
+            }
+
+            const delegacaoId = document.getElementById('colab-filter-delegacao').value;
+            const deptId = document.getElementById('colab-filter-tipo').value;
+
+            if (!deptId) {
+                equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
+                renderColaboradorDropdown();
+                renderColaboradorProfile();
+                return;
+            }
+
+            let eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
+            if (delegacaoId) {
+                eqList = eqList.filter(e => e.delegacao_id == null || String(e.delegacao_id) === String(delegacaoId));
+            }
+
+            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
+                eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+
+            renderColaboradorDropdown();
+            renderColaboradorProfile();
+        }
 
         function onColabEquipaFilterChange() {
             renderColaboradorDropdown();
@@ -991,6 +955,7 @@ function renderColaboradorDropdown() {
             const currentSelected = select.value;
 
             const topoFilter = document.getElementById('colab-filter-topo')?.value;
+            const delFilter = document.getElementById('colab-filter-delegacao')?.value;
             const deptFilter = document.getElementById('colab-filter-tipo')?.value;
             const eqFilter = document.getElementById('colab-filter-equipa')?.value;
 
@@ -1007,7 +972,25 @@ function renderColaboradorDropdown() {
                     populateColabCategoryFilter();
                     return;
                 }
-                filteredColabs = dbData.colaboradores.filter(c => String(c.equipa_id) === String(eqFilter));
+
+                const equipaObj = dbData.equipas.find(e => String(e.id) === String(eqFilter));
+
+                filteredColabs = dbData.colaboradores.filter(c => {
+                    if (String(c.equipa_id) !== String(eqFilter)) return false;
+
+                    const colabDept = c.departamento_id ?? equipaObj?.departamento_id;
+                    if (deptFilter && colabDept != null && String(colabDept) !== String(deptFilter)) {
+                        return false;
+                    }
+
+                    const deptObj = dbData.departamentos.find(d => String(d.id) === String(colabDept));
+                    const colabDel = c.delegacao_id ?? equipaObj?.delegacao_id ?? deptObj?.delegacao_id;
+                    if (delFilter && colabDel != null && String(colabDel) !== String(delFilter)) {
+                        return false;
+                    }
+
+                    return true;
+                });
             }
 
             filteredColabs.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -1018,6 +1001,8 @@ function renderColaboradorDropdown() {
                 select.innerHTML = filteredColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
                 if (Array.from(select.options).some(o => o.value === currentSelected)) {
                     select.value = currentSelected;
+                } else {
+                    select.selectedIndex = 0;
                 }
             }
 
@@ -1080,6 +1065,11 @@ function renderColaboradorDropdown() {
             if (colab.equipa_id) {
                 const eqObj = dbData.equipas.find(e => e.id == colab.equipa_id);
                 if (eqObj) {
+                    const delId = colab.delegacao_id ?? eqObj.delegacao_id;
+                    const delObj = delId ? dbData.delegacoes.find(d => d.id == delId) : null;
+                    if (delObj) {
+                        orgBadgeText = `${delObj.codigo_zona || ''} - ${delObj.designacao || ''} • ${orgBadgeText}`;
+                    }
                     orgBadgeText += ` • Equipa ${eqObj.numero_equipa}`;
                 }
             }
@@ -1171,6 +1161,7 @@ function renderColaboradorDropdown() {
             }).join('');
         }
 
+        // --- FORMULÁRIO DE REGISTO DE COLABORADOR ---
         function populateRegistoFormDropdowns() {
             const funcaoSelect = document.getElementById('reg-funcao');
             if (funcaoSelect) {
@@ -1202,7 +1193,10 @@ function renderColaboradorDropdown() {
                 if (containerTipo) containerTipo.style.display = 'block';
 
                 if (tipoSelect) {
-                    const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
+                    const sedeItems = dbData.sede.length > 0
+                        ? dbData.sede
+                        : dbData.departamentos.filter(d => d.topo_id == null || String(d.topo_id) === '1');
+
                     tipoSelect.innerHTML = '<option value="">Selecione o Departamento (Sede)...</option>' +
                         sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
 
@@ -1253,7 +1247,10 @@ function renderColaboradorDropdown() {
             }
 
             const delegacaoId = delegacaoSelect.value;
-            let departamentosFiltrados = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
+            let departamentosFiltrados = dbData.departamentos.filter(d =>
+                (d.delegacao_id != null && String(d.delegacao_id) === String(delegacaoId)) ||
+                (d.delegacao_id == null && (d.topo_id == null || String(d.topo_id) === '2'))
+            );
 
             if (departamentosFiltrados.length === 0) {
                 departamentosFiltrados = dbData.departamentos;
@@ -1285,6 +1282,7 @@ function renderColaboradorDropdown() {
         }
 
         function loadEquipasForTipo() {
+            const delegacaoSelect = document.getElementById('reg-delegacao');
             const tipoSelect = document.getElementById('reg-tipo');
             const equipaSelect = document.getElementById('reg-equipa');
 
@@ -1295,8 +1293,13 @@ function renderColaboradorDropdown() {
                 return;
             }
 
+            const delegacaoId = delegacaoSelect ? delegacaoSelect.value : '';
             const departamentoId = tipoSelect.value;
-            const equipasFiltradas = dbData.equipas.filter(e => String(e.departamento_id) === String(departamentoId));
+
+            let equipasFiltradas = dbData.equipas.filter(e => String(e.departamento_id) === String(departamentoId));
+            if (delegacaoId) {
+                equipasFiltradas = equipasFiltradas.filter(e => e.delegacao_id == null || String(e.delegacao_id) === String(delegacaoId));
+            }
 
             equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
                 equipasFiltradas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
@@ -1310,6 +1313,9 @@ function renderColaboradorDropdown() {
             const funcaoId = document.getElementById('reg-funcao').value ? parseInt(document.getElementById('reg-funcao').value) : null;
 
             const topoId = document.getElementById('reg-topo').value;
+            const delegacaoEl = document.getElementById('reg-delegacao');
+            const delegacaoId = (topoId == 2 && delegacaoEl && delegacaoEl.value) ? parseInt(delegacaoEl.value) : null;
+
             const tipoEl = document.getElementById('reg-tipo');
             const departamentoId = (tipoEl && tipoEl.value) ? parseInt(tipoEl.value) : null;
 
@@ -1327,7 +1333,8 @@ function renderColaboradorDropdown() {
                     email: email,
                     funcao_atual_id: funcaoId,
                     departamento_id: departamentoId,
-                    equipa_id: equipaId
+                    equipa_id: equipaId,
+                    delegacao_id: delegacaoId
                 };
 
                 await mutateDatabase('colaboradores', 'insert', payload);
