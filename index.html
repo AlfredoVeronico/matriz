@@ -11,16 +11,29 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    borderRadius: {
+                        none: '0px',
+                        sm: '0px',
+                        DEFAULT: '0px',
+                        md: '0px',
+                        lg: '0px',
+                        xl: '0px',
+                        '2xl': '0px',
+                        '3xl': '0px',
+                        full: '0px',
+                    },
                     colors: {
                         schmitt: {
+                            topBar: '#06070a',
+                            navyHero: '#041e42',
                             blue: '#0055A5',
-                            darkBlue: '#152B52',
+                            darkBlue: '#041e42',
                             accent: '#0083CA',
                             lightBg: '#F8FAFC',
                             cardBg: '#FFFFFF',
@@ -37,36 +50,53 @@
         }
     </script>
     <style>
+        * { border-radius: 0 !important; }
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        .hero-dark-blue {
+            background: linear-gradient(90deg, #031733 0%, #062552 65%, #0a3470 100%);
+        }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .harvey-ball { display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-schmitt-darkBlue text-white shadow-lg sticky top-0 z-50">
+    <!-- Top Navigation Header (Menu com os dizeres da 2ª imagem, estilo da 1ª imagem, sem "intranet") -->
+    <header class="bg-schmitt-topBar text-white sticky top-0 z-50 border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Brand Title -->
-                <div class="flex items-center space-x-3">
-                    <div class="bg-schmitt-accent p-2 rounded-xl shadow-inner">
-                        <i data-lucide="database" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
-                            <span>Matriz de Competências & Dashboard</span>
-                        </h1>
-                    </div>
+            <div class="flex justify-between items-center h-14 gap-4">
+                <div class="flex items-center gap-7 overflow-x-auto">
+                    <a href="#" onclick="switchTab('tab-dashboard'); return false;" class="flex items-center shrink-0" title="Matriz de Competências">
+                        <svg class="h-7 w-auto text-white" viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23 11C23 7.4 19.8 5.2 15.6 5.2C11.1 5.2 8 7.5 8 11.2C8 14.8 11 16.5 16.2 17.9C21.8 19.3 24.8 21.4 24.8 25.8C24.8 30.5 21 33.4 15.4 33.4C9.9 33.4 6.5 30.8 6.1 26.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/>
+                            <line x1="46" y1="8" x2="46" y2="33" stroke="currentColor" stroke-width="2.3" stroke-linecap="square"/>
+                            <line x1="33.5" y1="20.5" x2="58.5" y2="20.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="square"/>
+                        </svg>
+                    </a>
+
+                    <nav class="flex items-center gap-6 text-xs sm:text-sm font-medium text-slate-200">
+                        <button id="top-link-dashboard" onclick="switchTab('tab-dashboard')" class="py-4 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap">
+                            Dashboard &amp; Gaps
+                        </button>
+                        <button id="top-link-matrix" onclick="switchTab('tab-matrix')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
+                            Matriz de Requisitos
+                        </button>
+                        <button id="top-link-colab" onclick="switchTab('tab-colab')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
+                            Matriz de Colaboradores
+                        </button>
+                        <button id="top-link-eval" onclick="switchTab('tab-eval')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
+                            Registo de Colaboradores
+                        </button>
+                    </nav>
                 </div>
 
                 <!-- Database Status Badge -->
-                <div class="flex items-center space-x-3">
-                    <div id="connection-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <div class="flex items-center space-x-3 shrink-0">
+                    <div id="connection-status-badge" class="px-3 py-1 text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span class="w-2 h-2 bg-amber-400 animate-pulse"></span>
                         <span id="status-text">A Conectar ao Servidor...</span>
                     </div>
                 </div>
@@ -74,75 +104,68 @@
         </div>
     </header>
 
+    <!-- Banner Azul Escuro -->
+    <section class="hero-dark-blue text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                    Matriz de Competências &amp; Dashboard
+                </h1>
+                <p id="active-section-subtitle" class="text-xs sm:text-sm text-sky-100/90 mt-1.5">
+                    Dashboard &amp; Gaps
+                </p>
+            </div>
+            <div class="text-xs text-sky-100/80">
+                <span>Schmitt + Sohn</span>
+            </div>
+        </div>
+    </section>
+
     <!-- Main App Container -->
     <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow flex flex-col space-y-6">
 
         <!-- Top Metrics Overview -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Departamentos</span>
                     <span id="stat-dept-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
                 </div>
-                <div class="p-3 bg-blue-50 text-schmitt-blue rounded-xl">
+                <div class="p-3 bg-blue-50 text-schmitt-blue">
                     <i data-lucide="building-2" class="w-6 h-6"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Total Competências</span>
                     <span id="stat-comp-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
                 </div>
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <div class="p-3 bg-indigo-50 text-indigo-600">
                     <i data-lucide="layers" class="w-6 h-6"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Funções Mapeadas</span>
                     <span id="stat-func-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
                 </div>
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <div class="p-3 bg-emerald-50 text-emerald-600">
                     <i data-lucide="award" class="w-6 h-6"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-slate-500 block uppercase tracking-wider">Colaboradores</span>
                     <span id="stat-colab-count" class="text-2xl font-bold text-schmitt-darkBlue">0</span>
                 </div>
-                <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                <div class="p-3 bg-purple-50 text-purple-600">
                     <i data-lucide="users" class="w-6 h-6"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Section Navigation Tabs -->
-        <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex flex-wrap gap-2">
-            <button id="btn-tab-dashboard" onclick="switchTab('tab-dashboard')" 
-                    class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition">
-                <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                <span>Dashboard & Gaps</span>
-            </button>
-            <button id="btn-tab-matrix" onclick="switchTab('tab-matrix')" 
-                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-                <i data-lucide="grid" class="w-4 h-4"></i>
-                <span>Matriz de Requisitos</span>
-            </button>
-            <button id="btn-tab-colab" onclick="switchTab('tab-colab')" 
-                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-                <i data-lucide="user-check" class="w-4 h-4"></i>
-                <span>Matriz de Colaboradores</span>
-            </button>
-            <button id="btn-tab-eval" onclick="switchTab('tab-eval')" 
-                    class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
-                <i data-lucide="user-plus" class="w-4 h-4"></i>
-                <span>Registo de Colaboradores</span>
-            </button>
-        </div>
-
         <!-- Legenda da Escala de Proficiência Visual (0 a 4) -->
-        <div id="proficiencia-legend-box" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+        <div id="proficiencia-legend-box" class="bg-white p-4 shadow-sm border border-slate-200">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                     <i data-lucide="info" class="w-4 h-4 text-schmitt-blue"></i> Escala de Proficiência Visual (0 a 4)
@@ -150,23 +173,23 @@
                 <span class="text-xs text-slate-400 font-semibold">Modelo de Avaliação de Competências</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs font-medium">
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-700 flex items-center gap-2">
+                <div class="bg-slate-50 p-2.5 border border-slate-200 text-slate-700 flex items-center gap-2">
                     <span id="leg-0" class="flex-shrink-0"></span>
                     <span><b>0:</b> Não possui</span>
                 </div>
-                <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-blue-800 flex items-center gap-2">
+                <div class="bg-blue-50 p-2.5 border border-blue-200 text-blue-800 flex items-center gap-2">
                     <span id="leg-1" class="flex-shrink-0"></span>
                     <span><b>1:</b> Em formação</span>
                 </div>
-                <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-amber-800 flex items-center gap-2">
+                <div class="bg-amber-50 p-2.5 border border-amber-200 text-amber-800 flex items-center gap-2">
                     <span id="leg-2" class="flex-shrink-0"></span>
                     <span><b>2:</b> Faz com ajuda</span>
                 </div>
-                <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-2">
+                <div class="bg-emerald-50 p-2.5 border border-emerald-200 text-emerald-800 flex items-center gap-2">
                     <span id="leg-3" class="flex-shrink-0"></span>
                     <span><b>3:</b> Independente</span>
                 </div>
-                <div class="bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-purple-800 flex items-center gap-2">
+                <div class="bg-purple-50 p-2.5 border border-purple-200 text-purple-800 flex items-center gap-2">
                     <span id="leg-4" class="flex-shrink-0"></span>
                     <span><b>4:</b> Formador</span>
                 </div>
@@ -176,7 +199,7 @@
         <!-- TAB 0: DASHBOARD & ANÁLISE DE GAPS -->
         <div id="tab-dashboard" class="space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="bg-white p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Colaborador em Avaliação</span>
                     <div class="mt-2">
                         <select id="dash-colab-select" onchange="onDashboardColabChange()" class="w-full text-lg font-extrabold text-schmitt-darkBlue bg-transparent focus:outline-none cursor-pointer border-b border-schmitt-blue/30 pb-1">
@@ -185,7 +208,7 @@
                     <p id="dash-colab-role-dept" class="text-xs text-slate-500 mt-3">Função • Departamento</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="bg-white p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cargo Alvo (Análise)</span>
                     <div class="mt-2">
                         <select id="dash-target-role-select" onchange="renderDashboard()" class="w-full text-lg font-extrabold text-emerald-700 bg-transparent focus:outline-none cursor-pointer border-b border-emerald-300 pb-1">
@@ -194,16 +217,16 @@
                     <p class="text-xs text-slate-500 mt-3">Nível funcional de avaliação</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="bg-white p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gaps de Formação</span>
                     <h4 id="dash-gap-count" class="text-3xl font-black text-amber-600 mt-1">0</h4>
                     <p class="text-xs text-slate-500 mt-3">Requisitos exigidos acima do nível atual</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="bg-white p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Prontidão para Promoção</span>
                     <div class="mt-2">
-                        <div id="dash-readiness-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit">
+                        <div id="dash-readiness-badge" class="inline-block px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 w-fit">
                             A calcular...
                         </div>
                     </div>
@@ -212,7 +235,7 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-6 border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i data-lucide="radar" class="w-5 h-5 text-schmitt-blue"></i>
                         Comparativo por Área de Competência
@@ -222,7 +245,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center justify-between">
                         <span class="flex items-center gap-2">
                             <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500"></i>
@@ -238,7 +261,7 @@
 
         <!-- TAB 1: MATRIZ DE REQUISITOS -->
         <div id="tab-matrix" class="hidden space-y-4">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800">Consulta de Requisitos por Função</h2>
@@ -246,21 +269,21 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                        <select id="filter-dept" onchange="onDepartamentoFilterChange()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none">
+                        <select id="filter-dept" onchange="onDepartamentoFilterChange()" class="text-xs bg-slate-50 border border-slate-200 px-3 py-2 font-medium focus:outline-none">
                             <option value="ALL">Todos os Departamentos</option>
                         </select>
-                        <select id="filtro-categoria" onchange="renderMatrixTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none">
+                        <select id="filtro-categoria" onchange="renderMatrixTable()" class="text-xs bg-slate-50 border border-slate-200 px-3 py-2 font-medium focus:outline-none">
                             <option value="">Todas as Categorias</option>
                         </select>
                         <div class="relative flex-grow md:flex-grow-0">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="filter-search" oninput="renderMatrixTable()" placeholder="Pesquisar..." 
-                                   class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                            <input type="text" id="filter-search" oninput="renderMatrixTable()" placeholder="Pesquisar..."
+                                   class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 focus:outline-none">
                         </div>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
+                <div class="overflow-x-auto border border-slate-200 custom-scrollbar">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="matrix-thead"></thead>
                         <tbody id="matrix-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -271,8 +294,8 @@
 
         <!-- TAB 2: MATRIZ DE COLABORADORES -->
         <div id="tab-colab" class="hidden space-y-4">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
-                <div class="p-4 sm:p-5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-4">
+            <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-5">
+                <div class="p-4 sm:p-5 bg-slate-50/80 border border-slate-200 space-y-4">
                     <div class="border-b border-slate-200/80 pb-3">
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i data-lucide="user-check" class="w-4 h-4 text-schmitt-blue"></i>
@@ -289,26 +312,26 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Estrutura de Topo</label>
-                                <select id="colab-filter-topo" onchange="onColabTopoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
+                                <select id="colab-filter-topo" onchange="onColabTopoFilterChange()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
                             </div>
-                            
+
                             <div id="container-colab-filter-delegacao">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
-                                <select id="colab-filter-delegacao" onchange="onColabDelegacaoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <select id="colab-filter-delegacao" onchange="onColabDelegacaoFilterChange()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium focus:outline-none">
                                     <option value="">Selecione a Delegação...</option>
                                 </select>
                             </div>
 
                             <div id="container-colab-filter-tipo">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo / Departamento</label>
-                                <select id="colab-filter-tipo" onchange="onColabTipoFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <select id="colab-filter-tipo" onchange="onColabTipoFilterChange()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium focus:outline-none">
                                     <option value="">Selecione o Departamento...</option>
                                 </select>
                             </div>
 
                             <div id="container-colab-filter-equipa">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Equipa Nº</label>
-                                <select id="colab-filter-equipa" onchange="onColabEquipaFilterChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
+                                <select id="colab-filter-equipa" onchange="onColabEquipaFilterChange()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-bold text-schmitt-blue focus:outline-none">
                                     <option value="">Selecione a Equipa...</option>
                                 </select>
                             </div>
@@ -318,22 +341,22 @@
                     <div class="pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Colaborador da Equipa</label>
-                            <select id="colab-select" onchange="onColabSelectChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-schmitt-blue shadow-sm focus:outline-none">
+                            <select id="colab-select" onchange="onColabSelectChange()" class="w-full text-xs bg-white border border-slate-200 px-3 py-2.5 font-bold text-schmitt-blue shadow-sm focus:outline-none">
                                 <option value="">Selecione primeiro a Equipa...</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Filtrar por Categoria</label>
-                            <select id="colab-cat-filter" onchange="renderColaboradorProfile()" class="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-medium text-slate-700 shadow-sm focus:outline-none">
+                            <select id="colab-cat-filter" onchange="renderColaboradorProfile()" class="w-full text-xs bg-white border border-slate-200 px-3 py-2.5 font-medium text-slate-700 shadow-sm focus:outline-none">
                                 <option value="">Todas as Categorias</option>
                             </select>
                         </div>
                     </div>
 
-                    <div id="colab-info-card" class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-sm flex flex-wrap justify-between items-center gap-4"></div>
+                    <div id="colab-info-card" class="p-4 bg-white border border-slate-200/90 shadow-sm flex flex-wrap justify-between items-center gap-4"></div>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scrollbar">
+                <div class="overflow-x-auto border border-slate-200 custom-scrollbar">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
                             <tr>
@@ -353,7 +376,7 @@
 
         <!-- TAB 3: REGISTO DE COLABORADORES -->
         <div id="tab-eval" class="hidden space-y-4">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 w-full">
+            <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-6 w-full">
                 <div class="border-b border-slate-100 pb-4">
                     <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                         <i data-lucide="user-plus" class="w-5 h-5 text-schmitt-blue"></i>
@@ -363,7 +386,7 @@
                 </div>
 
                 <form id="form-colab-registo" onsubmit="handleSaveColaborador(event)" class="space-y-6">
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="p-4 bg-slate-50 border border-slate-200 space-y-3">
                         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="sitemap" class="w-4 h-4 text-schmitt-blue"></i>
                             <span>Atribuição Organizacional / Equipa</span>
@@ -371,26 +394,26 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Estrutura de Topo</label>
-                                <select id="reg-topo" onchange="onTopoSelectChange()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
+                                <select id="reg-topo" onchange="onTopoSelectChange()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-bold text-schmitt-blue focus:outline-none"></select>
                             </div>
-                            
+
                             <div id="container-reg-delegacao">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Delegação / Zona</label>
-                                <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <select id="reg-delegacao" onchange="loadTiposForDelegacao()" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium focus:outline-none">
                                     <option value="">Selecione a Delegação...</option>
                                 </select>
                             </div>
 
                             <div id="container-reg-tipo">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo / Departamento</label>
-                                <select id="reg-tipo" onchange="loadEquipasForTipo(); loadFuncoesForDepartamento();" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                                <select id="reg-tipo" onchange="loadEquipasForTipo(); loadFuncoesForDepartamento();" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium focus:outline-none">
                                     <option value="">Selecione o Tipo...</option>
                                 </select>
                             </div>
 
                             <div id="container-reg-equipa">
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Equipa Nº</label>
-                                <select id="reg-equipa" class="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-schmitt-blue focus:outline-none">
+                                <select id="reg-equipa" class="w-full text-xs bg-white border border-slate-200 p-2.5 font-bold text-schmitt-blue focus:outline-none">
                                     <option value="">Selecione a Equipa...</option>
                                 </select>
                             </div>
@@ -400,31 +423,31 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Colaborador</label>
-                            <input type="text" id="reg-nome" required placeholder="Nome completo" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                            <input type="text" id="reg-nome" required placeholder="Nome completo" class="w-full text-xs bg-slate-50 border border-slate-200 p-2.5 font-medium focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Número Mecanográfico</label>
-                            <input type="number" id="reg-num-mec" placeholder="Ex: 201068" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                            <input type="number" id="reg-num-mec" placeholder="Ex: 201068" class="w-full text-xs bg-slate-50 border border-slate-200 p-2.5 font-medium focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
-                            <input type="email" id="reg-email" placeholder="email@schmitt-elevadores.com" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none">
+                            <input type="email" id="reg-email" placeholder="email@schmitt-elevadores.com" class="w-full text-xs bg-slate-50 border border-slate-200 p-2.5 font-medium focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Função Atual</label>
-                            <select id="reg-funcao" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none"></select>
+                            <select id="reg-funcao" class="w-full text-xs bg-slate-50 border border-slate-200 p-2.5 font-medium focus:outline-none"></select>
                         </div>
                     </div>
 
                     <div class="pt-2 flex justify-end">
-                        <button type="submit" class="px-5 py-2.5 bg-schmitt-blue text-white rounded-xl text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
+                        <button type="submit" class="px-5 py-2.5 bg-schmitt-blue text-white text-xs font-bold shadow hover:bg-schmitt-darkBlue transition flex items-center gap-2">
                             <i data-lucide="save" class="w-4 h-4"></i>
                             <span>Guardar Colaborador</span>
                         </button>
                     </div>
                 </form>
 
-                <div id="form-feedback" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+                <div id="form-feedback" class="hidden p-3 text-xs font-semibold"></div>
             </div>
         </div>
 
@@ -437,7 +460,7 @@
     <script>
         let isOnlineSupabase = false;
         let radarChart = null;
-        
+
         let dbData = {
             departamentos: [],
             categorias: [],
@@ -514,11 +537,11 @@
             statusText.innerText = text;
 
             if (state === 'online') {
-                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                badge.className = "px-3 py-1 text-xs font-semibold flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
             } else if (state === 'connecting') {
-                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30";
+                badge.className = "px-3 py-1 text-xs font-semibold flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30";
             } else {
-                badge.className = "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                badge.className = "px-3 py-1 text-xs font-semibold flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30";
             }
         }
 
@@ -543,7 +566,7 @@
             const currentDept = deptSelect.value;
 
             deptSelect.innerHTML = dbData.departamentos.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
-            
+
             if (currentDept && Array.from(deptSelect.options).some(o => o.value == currentDept)) {
                 deptSelect.value = currentDept;
             } else if (dbData.departamentos.length > 0) {
@@ -612,7 +635,7 @@
                 categorias = categorias.filter(c => c.departamento_id == departamentoId);
             }
             categorias.sort((a, b) => a.nome.localeCompare(b.nome));
-            selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' + 
+            selectCategoria.innerHTML = '<option value="">Todas as Categorias</option>' +
                 categorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
 
             if (currentCat && Array.from(selectCategoria.options).some(o => o.value == currentCat)) {
@@ -689,21 +712,21 @@
             const badge = document.getElementById('dash-readiness-badge');
             if (gaps.length === 0) {
                 badge.textContent = "Elegível para Promoção";
-                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 w-fit";
+                badge.className = "inline-block px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 w-fit";
             } else {
                 badge.textContent = `${gaps.length} Gaps Pendentes`;
-                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 w-fit";
+                badge.className = "inline-block px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 w-fit";
             }
 
             const gapListEl = document.getElementById('dash-gap-list');
             if (gaps.length === 0) {
-                gapListEl.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold text-center border border-emerald-200">Sem lacunas de competência para esta função! O colaborador cumpre todos os requisitos do departamento.</div>`;
+                gapListEl.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-800 text-xs font-semibold text-center border border-emerald-200">Sem lacunas de competência para esta função! O colaborador cumpre todos os requisitos do departamento.</div>`;
             } else {
                 gapListEl.innerHTML = gaps.map(g => `
-                    <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-xl flex justify-between items-center text-xs">
+                    <div class="p-3 bg-red-50 border-l-4 border-red-500 flex justify-between items-center text-xs">
                         <span class="font-bold text-slate-800">${g.comp}</span>
                         <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 bg-red-200 text-red-800 rounded font-bold">Gap</span>
+                            <span class="px-2 py-0.5 bg-red-200 text-red-800 font-bold">Gap</span>
                             <span class="flex items-center gap-1">${getSvgCircle(g.actual, 16)} / ${getSvgCircle(g.required, 16)}</span>
                         </div>
                     </div>
@@ -716,7 +739,7 @@
 
             deptCategorias.forEach(catObj => {
                 const catComps = deptCompetencias.filter(c => c.categoria_id === catObj.id);
-                
+
                 let sumCurr = 0, sumReq = 0;
                 catComps.forEach(comp => {
                     const req = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == comp.id);
@@ -788,7 +811,7 @@
                         ${activeRoles.map(role => {
                             const req = dbData.requisitos.find(r => r.funcao_id == role.id && r.competencia_id == c.id);
                             const lvl = req ? req.nivel_requerido : 0;
-                            return `<td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition rounded group" onclick="handleCellClick(${role.id}, ${c.id}, ${lvl})" title="Clique para editar nível requerido">
+                            return `<td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition group" onclick="handleCellClick(${role.id}, ${c.id}, ${lvl})" title="Clique para editar nível requerido">
                                         <div class="relative">${getLevelBadge(lvl)}<span class="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-[10px] text-schmitt-blue font-bold">✎</span></div>
                                     </td>`;
                         }).join('')}
@@ -797,14 +820,13 @@
             }).join('');
         }
 
-        // --- FILTRO ORGANIZACIONAL NA MATRIZ DE COLABORADORES (CONDICIONADO À EQUIPA) ---
         function initColabOrgFilters() {
             const topoSelect = document.getElementById('colab-filter-topo');
             if (!topoSelect) return;
 
             const currentTopo = topoSelect.value;
             topoSelect.innerHTML = dbData.topo.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
-            
+
             if (currentTopo && Array.from(topoSelect.options).some(o => o.value == currentTopo)) {
                 topoSelect.value = currentTopo;
             } else {
@@ -823,11 +845,11 @@
             if (topoId == '1') {
                 if (containerDelegacao) containerDelegacao.style.display = 'none';
                 if (containerEquipa) containerEquipa.style.display = 'none';
-                
+
                 const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
-                tipoSelect.innerHTML = '<option value="">Todos os Departamentos (Sede)</option>' + 
+                tipoSelect.innerHTML = '<option value="">Todos os Departamentos (Sede)</option>' +
                     sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
-                
+
                 renderColaboradorDropdown();
                 renderColaboradorProfile();
             } else {
@@ -836,9 +858,9 @@
 
                 const delegacaoSelect = document.getElementById('colab-filter-delegacao');
                 const currentDel = delegacaoSelect.value;
-                delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' + 
+                delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' +
                     dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('');
-                
+
                 if (currentDel && Array.from(delegacaoSelect.options).some(o => o.value == currentDel)) {
                     delegacaoSelect.value = currentDel;
                 }
@@ -863,7 +885,7 @@
             let deptList = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
             if (deptList.length === 0) deptList = dbData.departamentos;
 
-            tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' + 
+            tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' +
                 deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 
             if (currentTipo && Array.from(tipoSelect.options).some(o => o.value == currentTipo)) {
@@ -892,7 +914,7 @@
             }
 
             const eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
-            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' + 
+            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
                 eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
 
             if (currentEq && Array.from(equipaSelect.options).some(o => o.value == currentEq)) {
@@ -965,7 +987,7 @@
             }
             deptCats.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            catFilterSelect.innerHTML = '<option value="">Todas as Categorias</option>' + 
+            catFilterSelect.innerHTML = '<option value="">Todas as Categorias</option>' +
                 deptCats.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
 
             if (currentCat && Array.from(catFilterSelect.options).some(o => o.value == currentCat)) {
@@ -1008,10 +1030,10 @@
 
             const deptFuncoes = dbData.funcoes.filter(f => f.departamento_id == deptId);
             const currentFuncaoIndex = deptFuncoes.findIndex(f => f.id == colab.funcao_atual_id);
-            
+
             const funcaoAtual = currentFuncaoIndex >= 0 ? deptFuncoes[currentFuncaoIndex] : { id: colab.funcao_atual_id, designacao: 'Atual' };
-            const funcaoAcima = (currentFuncaoIndex >= 0 && currentFuncaoIndex + 1 < deptFuncoes.length) 
-                ? deptFuncoes[currentFuncaoIndex + 1] 
+            const funcaoAcima = (currentFuncaoIndex >= 0 && currentFuncaoIndex + 1 < deptFuncoes.length)
+                ? deptFuncoes[currentFuncaoIndex + 1]
                 : funcaoAtual;
 
             const colabEvals = dbData.avaliacoes.filter(a => a.colaborador_id == colab.id);
@@ -1020,7 +1042,7 @@
             dbData.competencias.forEach(comp => {
                 const req = dbData.requisitos.find(r => r.funcao_id == funcaoAcima.id && r.competencia_id == comp.id);
                 const reqLvl = req ? req.nivel_requerido : 0;
-                
+
                 if (reqLvl > 0) {
                     totalReq += reqLvl;
                     const evalObj = colabEvals.find(e => e.competencia_id == comp.id);
@@ -1034,7 +1056,7 @@
 
             card.innerHTML = `
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-schmitt-blue text-white font-bold flex items-center justify-center text-sm">
+                    <div class="w-10 h-10 bg-schmitt-blue text-white font-bold flex items-center justify-center text-sm">
                         ${colab.nome.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -1083,7 +1105,7 @@
                         <td class="p-3 text-slate-500 text-[11px]">${comp.categoriaNome}</td>
                         <td class="p-3 font-semibold text-slate-800">${comp.nome}</td>
                         <td class="p-3 text-center" title="Próximo nível para ${funcaoAcima.designacao}">${getLevelBadge(reqLvl, false)}</td>
-                        <td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition rounded group" onclick="handleColabEvalCellClick(${colab.id}, ${comp.id}, ${currLvl})" title="Clique para editar nível atual">
+                        <td class="p-3 text-center cursor-pointer hover:bg-blue-50/50 transition group" onclick="handleColabEvalCellClick(${colab.id}, ${comp.id}, ${currLvl})" title="Clique para editar nível atual">
                             <div class="relative">${getLevelBadge(currLvl, false)}<span class="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-[10px] text-schmitt-blue font-bold">✎</span></div>
                         </td>
                         <td class="p-3 text-center">${getGapStateBadge(diff, reqLvl)}</td>
@@ -1125,9 +1147,9 @@
 
                 if (tipoSelect) {
                     const sedeItems = dbData.sede.length > 0 ? dbData.sede : dbData.departamentos;
-                    tipoSelect.innerHTML = '<option value="">Selecione o Departamento (Sede)...</option>' + 
+                    tipoSelect.innerHTML = '<option value="">Selecione o Departamento (Sede)...</option>' +
                         sedeItems.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
-                    
+
                     tipoSelect.onchange = function() {
                         loadFuncoesForDepartamento();
                     };
@@ -1142,7 +1164,7 @@
                     const delegacoesOptions = dbData.delegacoes.length > 0
                         ? dbData.delegacoes.map(d => `<option value="${d.id}">${d.codigo_zona || 'Z'} - ${d.designacao || 'Delegação'}</option>`).join('')
                         : '<option value="">Sem dados na tabela delegacoes</option>';
-                    
+
                     delegacaoSelect.innerHTML = '<option value="">Selecione a Delegação...</option>' + delegacoesOptions;
                 }
 
@@ -1176,12 +1198,12 @@
 
             const delegacaoId = delegacaoSelect.value;
             let departamentosFiltrados = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
-            
+
             if (departamentosFiltrados.length === 0) {
                 departamentosFiltrados = dbData.departamentos;
             }
 
-            tipoSelect.innerHTML = '<option value="">Selecione o Tipo / Departamento...</option>' + 
+            tipoSelect.innerHTML = '<option value="">Selecione o Tipo / Departamento...</option>' +
                 departamentosFiltrados.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 
             loadFuncoesForDepartamento();
@@ -1201,7 +1223,7 @@
             const departamentoId = tipoSelect.value;
             const funcoesFiltradas = dbData.funcoes.filter(f => String(f.departamento_id) === String(departamentoId));
 
-            funcaoSelect.innerHTML = funcoesFiltradas.length > 0 
+            funcaoSelect.innerHTML = funcoesFiltradas.length > 0
                 ? funcoesFiltradas.map(f => `<option value="${f.id}">${f.designacao}</option>`).join('')
                 : '<option value="">Sem funções para este departamento</option>';
         }
@@ -1220,7 +1242,7 @@
             const departamentoId = tipoSelect.value;
             const equipasFiltradas = dbData.equipas.filter(e => String(e.departamento_id) === String(departamentoId));
 
-            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' + 
+            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
                 equipasFiltradas.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
         }
 
@@ -1230,14 +1252,14 @@
             const numMec = document.getElementById('reg-num-mec').value ? parseInt(document.getElementById('reg-num-mec').value) : null;
             const email = document.getElementById('reg-email').value.trim();
             const funcaoId = document.getElementById('reg-funcao').value ? parseInt(document.getElementById('reg-funcao').value) : null;
-            
+
             const topoId = document.getElementById('reg-topo').value;
             const tipoEl = document.getElementById('reg-tipo');
             const departamentoId = (tipoEl && tipoEl.value) ? parseInt(tipoEl.value) : null;
 
             const equipaEl = document.getElementById('reg-equipa');
             const equipaId = (topoId == 2 && equipaEl && equipaEl.value) ? parseInt(equipaEl.value) : null;
-            
+
             const feedback = document.getElementById('form-feedback');
 
             if (!nome) return;
@@ -1254,14 +1276,14 @@
 
                 await mutateDatabase('colaboradores', 'insert', payload);
 
-                feedback.className = "p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                feedback.className = "p-3 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
                 feedback.innerText = "Colaborador registado com sucesso!";
-                
+
                 document.getElementById('form-colab-registo').reset();
                 populateRegistoFormDropdowns();
                 await fetchAllDataFromSupabase();
             } catch (err) {
-                feedback.className = "p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
+                feedback.className = "p-3 text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block";
                 feedback.innerText = "Erro ao registar colaborador: " + err.message;
             }
         }
@@ -1288,7 +1310,7 @@
         function getLevelBadge(lvl, showLabel = false) {
             const nivel = parseInt(lvl, 10) || 0;
             const svg = getSvgCircle(nivel, 18);
-            
+
             if (!showLabel) {
                 return `<div class="flex justify-center items-center">${svg}</div>`;
             }
@@ -1301,15 +1323,15 @@
                 4: "4 - Formador"
             };
 
-            return `<span class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
+            return `<span class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
                         ${svg} <span>${labels[nivel] || nivel}</span>
                     </span>`;
         }
 
         function getGapStateBadge(diff, reqLvl) {
             if (reqLvl === 0) return `<span class="text-slate-400 font-medium">-</span>`;
-            if (diff >= 0) return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">Conforme (+${diff})</span>`;
-            return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold text-[11px]">GAP (${diff})</span>`;
+            if (diff >= 0) return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px]">Conforme (+${diff})</span>`;
+            return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px]">GAP (${diff})</span>`;
         }
 
         function getGapActionPlan(diff, reqLvl) {
@@ -1342,7 +1364,7 @@
 
             try {
                 const existing = dbData.requisitos.find(r => r.funcao_id == funcaoId && r.competencia_id == competenciaId);
-                
+
                 if (existing) {
                     await mutateDatabase('requisitos_funcao', 'update', { nivel_requerido: newLvl }, existing.id);
                 } else {
@@ -1379,7 +1401,7 @@
 
             try {
                 const existing = dbData.avaliacoes.find(a => a.colaborador_id == colaboradorId && a.competencia_id == competenciaId);
-                
+
                 if (existing) {
                     await mutateDatabase('avaliacoes_colaborador', 'update', { nivel_atual: newLvl }, existing.id);
                 } else {
@@ -1394,17 +1416,35 @@
         }
 
         function switchTab(tabId) {
+            const tabMeta = {
+                'tab-dashboard': { linkId: 'top-link-dashboard', subtitle: 'Dashboard & Gaps' },
+                'tab-matrix':    { linkId: 'top-link-matrix',    subtitle: 'Matriz de Requisitos' },
+                'tab-colab':     { linkId: 'top-link-colab',     subtitle: 'Matriz de Colaboradores' },
+                'tab-eval':      { linkId: 'top-link-eval',      subtitle: 'Registo de Colaboradores' }
+            };
+
             ['dashboard', 'matrix', 'colab', 'eval'].forEach(t => {
                 const page = document.getElementById(`tab-${t}`);
-                const btn = document.getElementById(`btn-tab-${t}`);
-                if (`tab-${t}` === tabId) {
-                    page.classList.remove('hidden');
-                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-schmitt-blue text-white shadow-sm transition";
-                } else {
-                    page.classList.add('hidden');
-                    btn.className = "px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition";
+                if (page) {
+                    if (`tab-${t}` === tabId) page.classList.remove('hidden');
+                    else page.classList.add('hidden');
                 }
             });
+
+            Object.entries(tabMeta).forEach(([id, meta]) => {
+                const linkEl = document.getElementById(meta.linkId);
+                if (!linkEl) return;
+                if (id === tabId) {
+                    linkEl.className = "py-4 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap";
+                } else {
+                    linkEl.className = "py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap";
+                }
+            });
+
+            const subtitleEl = document.getElementById('active-section-subtitle');
+            if (subtitleEl && tabMeta[tabId]) {
+                subtitleEl.textContent = tabMeta[tabId].subtitle;
+            }
 
             const profLegend = document.getElementById('proficiencia-legend-box');
             if (tabId === 'tab-eval') {
@@ -1417,8 +1457,8 @@
     </script>
 
     <!-- Modal Edição Requisito -->
-    <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
@@ -1428,7 +1468,7 @@
             </div>
             <div class="space-y-3">
                 <label class="block text-xs font-semibold text-slate-600">Selecione o nível exigido (0 a 4):</label>
-                <select id="modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
+                <select id="modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
                     <option value="0">○ 0 — Não possui</option>
                     <option value="1">◔ 1 — Em formação</option>
                     <option value="2">◑ 2 — Faz com ajuda</option>
@@ -1437,15 +1477,15 @@
                 </select>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancelar</button>
-                <button onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">OK</button>
+                <button onclick="closeCustomModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancelar</button>
+                <button onclick="confirmCustomModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white text-xs font-bold shadow transition">OK</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Edição Avaliação Colaborador -->
-    <div id="eval-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
+    <div id="eval-modal" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white shadow-xl border border-slate-200 p-6 w-full max-w-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-4 h-4 text-schmitt-blue"></i>
@@ -1455,7 +1495,7 @@
             </div>
             <div class="space-y-3">
                 <label class="block text-xs font-semibold text-slate-600">Selecione o nível demonstrado (0 a 4):</label>
-                <select id="eval-modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
+                <select id="eval-modal-level-select" class="w-full text-xs bg-slate-50 border border-slate-200 p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/30">
                     <option value="0">○ 0 — Não possui</option>
                     <option value="1">◔ 1 — Em formação</option>
                     <option value="2">◑ 2 — Faz com ajuda</option>
@@ -1464,8 +1504,8 @@
                 </select>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button onclick="closeEvalModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancelar</button>
-                <button onclick="confirmEvalModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white rounded-xl text-xs font-bold shadow transition">Guardar</button>
+                <button onclick="closeEvalModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancelar</button>
+                <button onclick="confirmEvalModal()" class="px-5 py-2 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white text-xs font-bold shadow transition">Guardar</button>
             </div>
         </div>
     </div>
