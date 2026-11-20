@@ -868,62 +868,118 @@
             }
         }
 
-        function onColabDelegacaoFilterChange() {
-            const delegacaoId = document.getElementById('colab-filter-delegacao').value;
-            const tipoSelect = document.getElementById('colab-filter-tipo');
-            const equipaSelect = document.getElementById('colab-filter-equipa');
-            const currentTipo = tipoSelect.value;
+function onColabDelegacaoFilterChange() {
+    const delegacaoId = document.getElementById('colab-filter-delegacao').value;
+    const tipoSelect = document.getElementById('colab-filter-tipo');
+    const equipaSelect = document.getElementById('colab-filter-equipa');
+    const colabSelect = document.getElementById('colab-select');
 
-            if (!delegacaoId) {
-                tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
-                equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
-                renderColaboradorDropdown();
-                renderColaboradorProfile();
-                return;
-            }
+    equipaSelect.value = '';
+    if (colabSelect) colabSelect.value = '';
 
-            let deptList = dbData.departamentos.filter(d => String(d.delegacao_id) === String(delegacaoId));
-            if (deptList.length === 0) deptList = dbData.departamentos;
+    if (!delegacaoId) {
+        tipoSelect.innerHTML = '<option value="">Selecione primeiro a Delegação...</option>';
+        equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>';
+        renderColaboradorDropdown();
+        renderColaboradorProfile();
+        return;
+    }
 
-            tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' +
-                deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+    let deptList = dbData.departamentos.filter(d => d.topo_id == null || String(d.topo_id) === '2');
+    if (deptList.length === 0) deptList = dbData.departamentos;
 
-            if (currentTipo && Array.from(tipoSelect.options).some(o => o.value == currentTipo)) {
-                tipoSelect.value = currentTipo;
-            }
-            onColabTipoFilterChange();
+    tipoSelect.innerHTML = '<option value="">Selecione o Departamento...</option>' +
+        deptList.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+
+    equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
+    renderColaboradorDropdown();
+    renderColaboradorProfile();
+}
+        
+
+function onColabTipoFilterChange() {
+    const topoId = document.getElementById('colab-filter-topo').value;
+    const equipaSelect = document.getElementById('colab-filter-equipa');
+    const colabSelect = document.getElementById('colab-select');
+
+    if (equipaSelect) equipaSelect.value = '';
+    if (colabSelect) colabSelect.value = '';
+
+    if (topoId == '1') {
+        renderColaboradorDropdown();
+        renderColaboradorProfile();
+        return;
+    }
+
+    const deptId = document.getElementById('colab-filter-tipo').value;
+
+    if (!deptId) {
+        equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
+        renderColaboradorDropdown();
+        renderColaboradorProfile();
+        return;
+    }
+
+    const eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
+
+    equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
+        eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
+
+    renderColaboradorDropdown();
+    renderColaboradorProfile();
+}
+
+function renderColaboradorDropdown() {
+    const select = document.getElementById('colab-select');
+    const currentSelected = select.value;
+
+    const topoFilter = document.getElementById('colab-filter-topo')?.value;
+    const deptFilter = document.getElementById('colab-filter-tipo')?.value;
+    const eqFilter = document.getElementById('colab-filter-equipa')?.value;
+
+    let filteredColabs = [];
+
+    if (topoFilter == '1') {
+        filteredColabs = dbData.colaboradores.filter(c => !c.equipa_id);
+        if (deptFilter) {
+            filteredColabs = filteredColabs.filter(c => String(c.departamento_id) === String(deptFilter));
+        }
+    } else {
+        if (!eqFilter) {
+            select.innerHTML = '<option value="">Selecione primeiro uma Equipa acima...</option>';
+            populateColabCategoryFilter();
+            return;
         }
 
-        function onColabTipoFilterChange() {
-            const topoId = document.getElementById('colab-filter-topo').value;
-            if (topoId == '1') {
-                renderColaboradorDropdown();
-                renderColaboradorProfile();
-                return;
+        const equipaObj = dbData.equipas.find(e => String(e.id) === String(eqFilter));
+
+        filteredColabs = dbData.colaboradores.filter(c => {
+            if (String(c.equipa_id) !== String(eqFilter)) return false;
+
+            const colabDept = c.departamento_id ?? equipaObj?.departamento_id;
+            if (deptFilter && colabDept != null && String(colabDept) !== String(deptFilter)) {
+                return false;
             }
 
-            const deptId = document.getElementById('colab-filter-tipo').value;
-            const equipaSelect = document.getElementById('colab-filter-equipa');
-            const currentEq = equipaSelect.value;
+            return true;
+        });
+    }
 
-            if (!deptId) {
-                equipaSelect.innerHTML = '<option value="">Selecione primeiro o Departamento...</option>';
-                renderColaboradorDropdown();
-                renderColaboradorProfile();
-                return;
-            }
+    filteredColabs.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            const eqList = dbData.equipas.filter(e => String(e.departamento_id) === String(deptId));
-            equipaSelect.innerHTML = '<option value="">Selecione a Equipa...</option>' +
-                eqList.map(e => `<option value="${e.id}">Equipa ${e.numero_equipa}</option>`).join('');
-
-            if (currentEq && Array.from(equipaSelect.options).some(o => o.value == currentEq)) {
-                equipaSelect.value = currentEq;
-            }
-
-            renderColaboradorDropdown();
-            renderColaboradorProfile();
+    if (filteredColabs.length === 0) {
+        select.innerHTML = '<option value="">Sem colaboradores nesta equipa</option>';
+    } else {
+        select.innerHTML = filteredColabs.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        if (Array.from(select.options).some(o => o.value === currentSelected)) {
+            select.value = currentSelected;
+        } else {
+            select.selectedIndex = 0;
         }
+    }
+
+    populateColabCategoryFilter();
+}
 
         function onColabEquipaFilterChange() {
             renderColaboradorDropdown();
