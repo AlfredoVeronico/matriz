@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -2093,6 +2093,44 @@
             }
         }
 
+        
+        function buildFormacaoPayload({ numMecParsed, nomeColaborador, categoria, formacao, dataFormacao, horasNum }) {
+            return {
+                num_mec: numMecParsed,
+                nome: nomeColaborador || null,
+                tema: categoria || null,
+                formacao: formacao,
+                data_formacao: dataFormacao,
+                horas: horasNum
+            };
+        }
+
+        async function insertFormacaoWithFallback(payload) {
+            const candidatePayloads = [
+                payload,
+                (() => { const p = { ...payload }; delete p.tema; p.categoria = payload.tema; return p; })(),
+                (() => { const p = { ...payload }; delete p.tema; return p; })(),
+                (() => { const p = { ...payload }; delete p.nome; return p; })(),
+                (() => { const p = { ...payload }; delete p.tema; delete p.nome; return p; })()
+            ];
+
+            let lastErr = null;
+            for (const cand of candidatePayloads) {
+                try {
+                    await mutateDatabase('formacoes_realizadas', 'insert', cand);
+                    return;
+                } catch (err) {
+                    lastErr = err;
+                    const msg = String(err?.message || '');
+                    const isSchemaColErr = /could not find the ['"].+['"] column/i.test(msg) || /column .+ does not exist/i.test(msg);
+                    if (!isSchemaColErr) {
+                        throw err;
+                    }
+                }
+            }
+            throw lastErr || new Error('Erro ao guardar formação.');
+        }
+
         async function handleSaveFormacaoManual(event) {
             event.preventDefault();
             const feedback = document.getElementById('formacao-manual-feedback');
@@ -2118,27 +2156,18 @@
                 return;
             }
 
-            const payload = {
-                num_mec: numMecParsed,
-                nome: nomeColaborador || null,
-                categoria: categoria || null,
-                formacao: formacao,
-                data_formacao: dataFormacao,
-                horas: horasNum
-            };
-            if (colabEncontrado && colabEncontrado.id != null) {
-                payload.colaborador_id = colabEncontrado.id;
-            }
-            if (entidade) {
-                payload.entidade = entidade;
-            }
-            if (observacoes) {
-                payload.observacoes = observacoes;
-            }
+            const payload = buildFormacaoPayload({
+                numMecParsed,
+                nomeColaborador,
+                categoria,
+                formacao,
+                dataFormacao,
+                horasNum
+            });
 
             try {
                 if (btn) btn.disabled = true;
-                await mutateDatabase('formacoes_realizadas', 'insert', payload);
+                await insertFormacaoWithFallback(payload);
 
                 feedback.className = 'p-3 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block';
                 feedback.innerText = `Formação "${formacao}" registada com sucesso para o nº mecanográfico ${rawNumMec}.`;
@@ -2314,19 +2343,14 @@
                     ? (Number.isNaN(Number(rawNumMec)) ? rawNumMec : parseInt(rawNumMec, 10))
                     : null;
 
-                const payload = {
-                    num_mec: numMecParsed,
-                    nome: nomeFinal || null,
-                    categoria: categoriaFinal || null,
+                const payload = buildFormacaoPayload({
+                    numMecParsed,
+                    nomeColaborador: nomeFinal,
+                    categoria: categoriaFinal,
                     formacao: formacaoFinal,
-                    data_formacao: dataFinal,
-                    horas: Number.isNaN(horasNum) ? 0 : horasNum
-                };
-                if (colabMatch && colabMatch.id != null) {
-                    payload.colaborador_id = colabMatch.id;
-                }
-                if (entidadeFinal) payload.entidade = entidadeFinal;
-                if (obsFinal) payload.observacoes = obsFinal;
+                    dataFormacao: dataFinal,
+                    horasNum: Number.isNaN(horasNum) ? 0 : horasNum
+                });
 
                 rows.push({
                     lineNumber: i + 1,
@@ -2424,7 +2448,7 @@
 
             for (const row of validRows) {
                 try {
-                    await mutateDatabase('formacoes_realizadas', 'insert', row.payload);
+                    await insertFormacaoWithFallback(row.payload);
                     inserted++;
                 } catch (err) {
                     errors.push(`Linha ${row.lineNumber}: ${err.message}`);
@@ -2548,4 +2572,5 @@
     </div>
 </body>
 </html>
+
 
