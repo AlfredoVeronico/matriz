@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -2101,17 +2101,16 @@
                 tema: categoria || null,
                 formacao: formacao,
                 data_formacao: dataFormacao,
-                horas: horasNum
+                duracao: horasNum
             };
         }
 
         async function insertFormacaoWithFallback(payload) {
             const candidatePayloads = [
                 payload,
-                (() => { const p = { ...payload }; delete p.tema; p.categoria = payload.tema; return p; })(),
-                (() => { const p = { ...payload }; delete p.tema; return p; })(),
-                (() => { const p = { ...payload }; delete p.nome; return p; })(),
-                (() => { const p = { ...payload }; delete p.tema; delete p.nome; return p; })()
+                (() => { const p = { ...payload }; delete p.duracao; p.horas = payload.duracao; return p; })(),
+                (() => { const p = { ...payload }; delete p.duracao; p.duracao_horas = payload.duracao; return p; })(),
+                (() => { const p = { ...payload }; delete p.duracao; return p; })()
             ];
 
             let lastErr = null;
