@@ -90,6 +90,9 @@
                         <button type="button" id="top-link-formacoes" onclick="switchTab('tab-formacoes')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
                             Consulta de Formações
                         </button>
+                        <button type="button" id="top-link-inserir-formacoes" onclick="switchTab('tab-inserir-formacoes')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
+                            Inserir Formações
+                        </button>
                         <button type="button" id="top-link-eval" onclick="switchTab('tab-eval')" class="py-4 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
                             Registo de Colaboradores
                         </button>
@@ -383,6 +386,162 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- TAB: INSERIR FORMAÇÕES E IMPORTAÇÃO CSV -->
+        <div id="tab-inserir-formacoes" class="hidden space-y-4">
+            <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-6 w-full">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="file-plus-2" class="w-5 h-5 text-schmitt-blue"></i>
+                            <span>Inserir Formações Realizadas</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Introduza o número mecanográfico (num_mec) para localizar o colaborador, preencha os dados da formação ou carregue um ficheiro CSV.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="file" id="csv-formacoes-file-input" accept=".csv,text/csv" class="hidden" onchange="handleCsvFormacoesFileChange(event)">
+                        <button type="button" onclick="triggerCsvFormacoesUpload()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            <span>Carregar CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel de Importação CSV (visível quando um ficheiro CSV é carregado) -->
+                <div id="csv-import-panel" class="hidden p-4 bg-slate-50 border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-3">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-schmitt-blue"></i>
+                                <span id="csv-file-summary">Pré-visualização do Ficheiro CSV</span>
+                            </h3>
+                            <p id="csv-validation-summary" class="text-xs text-slate-500 mt-0.5"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btn-confirm-csv-import" onclick="confirmarImportacaoCsvFormacoes()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow transition flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                <span>Importar Registos</span>
+                            </button>
+                            <button type="button" onclick="cancelarImportacaoCsvFormacoes()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold transition">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="csv-import-feedback" class="hidden p-3 text-xs font-semibold"></div>
+
+                    <div class="overflow-x-auto border border-slate-200 bg-white max-h-64 custom-scrollbar">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5">Linha</th>
+                                    <th class="p-2.5">Nº Mec.</th>
+                                    <th class="p-2.5">Colaborador</th>
+                                    <th class="p-2.5">Área / Categoria</th>
+                                    <th class="p-2.5">Formação</th>
+                                    <th class="p-2.5 text-center">Data</th>
+                                    <th class="p-2.5 text-center">Horas</th>
+                                    <th class="p-2.5">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="csv-preview-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Formulário Manual de Inserção de Formação -->
+                <form id="form-inserir-formacao" onsubmit="handleSaveFormacaoManual(event)" class="space-y-5">
+                    <div class="p-4 bg-slate-50 border border-slate-200 space-y-4">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="user-search" class="w-4 h-4 text-schmitt-blue"></i>
+                            <span>Identificação do Colaborador</span>
+                        </h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label for="formacao-num-mec" class="block text-xs font-semibold text-slate-600 mb-1">Número Mecanográfico (num_mec) *</label>
+                                <div class="relative">
+                                    <i data-lucide="hash" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="number" id="formacao-num-mec" required oninput="onFormacaoNumMecInput()" onblur="onFormacaoNumMecInput()" placeholder="Ex: 200239"
+                                           class="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-200 font-bold text-schmitt-blue focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="formacao-colaborador-nome" class="block text-xs font-semibold text-slate-600 mb-1">Nome do Colaborador</label>
+                                <input type="text" id="formacao-colaborador-nome" required placeholder="Preenchido automaticamente ao inserir o num_mec..."
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+                        </div>
+
+                        <div id="formacao-colab-lookup-status" class="text-xs text-slate-500 flex items-center gap-1.5">
+                            <span>Introduza um número mecanográfico para pesquisar na tabela de colaboradores.</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200 space-y-4">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="graduation-cap" class="w-4 h-4 text-schmitt-blue"></i>
+                            <span>Dados da Formação</span>
+                        </h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label for="formacao-categoria" class="block text-xs font-semibold text-slate-600 mb-1">Área / Categoria</label>
+                                <input type="text" id="formacao-categoria" list="formacao-categorias-datalist" placeholder="Ex: Segurança / Técnica"
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                                <datalist id="formacao-categorias-datalist"></datalist>
+                            </div>
+
+                            <div class="lg:col-span-2">
+                                <label for="formacao-designacao" class="block text-xs font-semibold text-slate-600 mb-1">Designação da Formação *</label>
+                                <input type="text" id="formacao-designacao" required placeholder="Ex: Diagnóstico de Variadores / Segurança EN 81"
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+
+                            <div>
+                                <label for="formacao-data" class="block text-xs font-semibold text-slate-600 mb-1">Data da Formação *</label>
+                                <input type="date" id="formacao-data" required
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label for="formacao-horas" class="block text-xs font-semibold text-slate-600 mb-1">Duração (Horas) *</label>
+                                <input type="number" step="0.5" min="0" id="formacao-horas" required placeholder="Ex: 8"
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+
+                            <div>
+                                <label for="formacao-entidade" class="block text-xs font-semibold text-slate-600 mb-1">Entidade / Formador</label>
+                                <input type="text" id="formacao-entidade" placeholder="Ex: Schmitt + Sohn / ISQ"
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="formacao-observacoes" class="block text-xs font-semibold text-slate-600 mb-1">Observações</label>
+                                <input type="text" id="formacao-observacoes" placeholder="Notas adicionais (opcional)"
+                                       class="w-full text-xs bg-white border border-slate-200 p-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-schmitt-blue/20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="resetFormacaoManualForm()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold transition">
+                            Limpar Campos
+                        </button>
+                        <button type="submit" id="btn-save-formacao-manual" class="px-5 py-2.5 bg-schmitt-blue hover:bg-schmitt-darkBlue text-white text-xs font-bold shadow transition flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Guardar Formação</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="formacao-manual-feedback" class="hidden p-3 text-xs font-semibold"></div>
             </div>
         </div>
 
@@ -1626,7 +1785,17 @@
             }
         }
 
-        function consultarFormacoesPorNumMec(event) {
+        function matchNumMec(val, targetStr, targetNum) {
+            if (val === null || val === undefined) return false;
+            const s = String(val).trim();
+            if (!s) return false;
+            if (s === targetStr) return true;
+            const n = Number(s);
+            if (!Number.isNaN(n) && !Number.isNaN(targetNum) && n === targetNum) return true;
+            return false;
+        }
+
+        async function consultarFormacoesPorNumMec(event) {
             if (event) event.preventDefault();
             const input = document.getElementById('formacoes-num-mec-input');
             const card = document.getElementById('formacoes-colab-card');
@@ -1635,21 +1804,81 @@
 
             if (!rawVal) return;
 
-            const numMecTarget = String(parseInt(rawVal, 10));
-            const colab = dbData.colaboradores.find(c => String(c.num_mec).trim() === numMecTarget);
+            const targetNum = Number(rawVal);
+            const numMecTarget = !Number.isNaN(targetNum) ? String(targetNum) : rawVal;
 
-            const registos = (dbData.formacoes_realizadas || []).filter(r => {
-                const rMec = r.num_mec ?? r.numero_mecanografico ?? r.mec;
-                return rMec != null && String(rMec).trim() === numMecTarget;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="p-6 text-center text-slate-500 font-medium">
+                        A consultar formações para o nº mecanográfico <b>${numMecTarget}</b>...
+                    </td>
+                </tr>
+            `;
+
+            if (!dbData.formacoes_realizadas || dbData.formacoes_realizadas.length === 0) {
+                try {
+                    const resDados = await fetch('/api/dados');
+                    if (resDados.ok) {
+                        const fresh = await resDados.json();
+                        if (Array.isArray(fresh.formacoes_realizadas) && fresh.formacoes_realizadas.length > 0) {
+                            dbData.formacoes_realizadas = fresh.formacoes_realizadas;
+                        }
+                        if (Array.isArray(fresh.colaboradores) && fresh.colaboradores.length > 0) {
+                            dbData.colaboradores = fresh.colaboradores;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            let registos = (dbData.formacoes_realizadas || []).filter(r => {
+                const rMec = r.num_mec ?? r.numero_mecanografico ?? r.mec ?? r.numMec;
+                return matchNumMec(rMec, numMecTarget, targetNum);
             });
+
+            if (registos.length === 0) {
+                try {
+                    const resForm = await fetch(`/api/formacoes?num_mec=${encodeURIComponent(numMecTarget)}`);
+                    if (resForm.ok) {
+                        const dataForm = await resForm.json();
+                        const rows = Array.isArray(dataForm) ? dataForm : (dataForm.formacoes_realizadas || dataForm.data || dataForm.rows || []);
+                        if (Array.isArray(rows) && rows.length > 0) {
+                            registos = rows.filter(r => {
+                                const rMec = r.num_mec ?? r.numero_mecanografico ?? r.mec ?? r.numMec;
+                                return rMec === undefined || matchNumMec(rMec, numMecTarget, targetNum);
+                            });
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            const colab = dbData.colaboradores.find(c => matchNumMec(c.num_mec, numMecTarget, targetNum));
+
+            function parseDataTimestamp(item) {
+                const raw = item?.data_formacao ?? item?.data ?? '';
+                if (raw === null || raw === undefined || raw === '') return -Infinity;
+                const str = String(raw).trim();
+                const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                if (isoMatch) {
+                    return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3])).getTime();
+                }
+                const ptMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+                if (ptMatch) {
+                    return new Date(Number(ptMatch[3]), Number(ptMatch[2]) - 1, Number(ptMatch[1])).getTime();
+                }
+                const parsed = Date.parse(str);
+                return Number.isNaN(parsed) ? -Infinity : parsed;
+            }
 
             registos.sort((a, b) => {
-                const da = a.data || a.data_formacao || '';
-                const db = b.data || b.data_formacao || '';
-                return String(db).localeCompare(String(da));
+                const ta = parseDataTimestamp(a);
+                const tb = parseDataTimestamp(b);
+                if (tb !== ta) return tb - ta;
+                const da = String(a?.data_formacao ?? a?.data ?? '');
+                const db = String(b?.data_formacao ?? b?.data ?? '');
+                return db.localeCompare(da);
             });
 
-            const nomeExibir = colab ? colab.nome : (registos[0]?.nome || registos[0]?.colaborador || 'Colaborador não registado na matriz');
+            const nomeExibir = (registos[0]?.nome || registos[0]?.colaborador || (colab ? colab.nome : null)) || 'Colaborador não registado na matriz';
             const funcaoObj = colab ? dbData.funcoes.find(f => f.id == colab.funcao_atual_id) : null;
             const deptObj = colab ? dbData.departamentos.find(d => d.id == colab.departamento_id) : null;
 
@@ -1657,6 +1886,44 @@
                 const h = parseFloat(String(r.horas ?? r.duracao ?? r.duracao_horas ?? 0).replace(',', '.'));
                 return acc + (isNaN(h) ? 0 : h);
             }, 0);
+
+            function extractYearFromItem(item) {
+                const raw = item?.data_formacao ?? item?.data ?? '';
+                if (raw === null || raw === undefined || raw === '') return null;
+                const str = String(raw).trim();
+                const isoMatch = str.match(/^(\d{4})[-/]/);
+                if (isoMatch) return Number(isoMatch[1]);
+                const ptMatch = str.match(/[-/](\d{4})(?:$|\s|T)/);
+                if (ptMatch) return Number(ptMatch[1]);
+                const d = new Date(str);
+                return Number.isNaN(d.getTime()) ? null : d.getFullYear();
+            }
+
+            function parseHorasItem(item) {
+                const h = parseFloat(String(item?.horas ?? item?.duracao ?? item?.duracao_horas ?? 0).replace(',', '.'));
+                return Number.isNaN(h) ? 0 : h;
+            }
+
+            function formatHoras(val) {
+                const rounded = Math.round(val * 10) / 10;
+                return `${rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1)} h`;
+            }
+
+            const anoAtual = new Date().getFullYear();
+            const anoAnterior = anoAtual - 1;
+
+            let horasAnoAtual = 0;
+            let horasAnoAnterior = 0;
+
+            registos.forEach((r) => {
+                const ano = extractYearFromItem(r);
+                const h = parseHorasItem(r);
+                if (ano === anoAtual) {
+                    horasAnoAtual += h;
+                } else if (ano === anoAnterior) {
+                    horasAnoAnterior += h;
+                }
+            });
 
             card.classList.remove('hidden');
             card.innerHTML = `
@@ -1669,14 +1936,22 @@
                         <p class="text-xs text-slate-500">${funcaoObj ? funcaoObj.designacao : 'Função N/D'} • ${deptObj ? deptObj.nome : 'Departamento N/D'}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-6 text-xs">
+                <div class="flex flex-wrap items-center gap-5 text-xs">
                     <div class="text-right">
                         <span class="text-slate-500 block">Total de Formações</span>
                         <span class="font-bold text-base text-schmitt-darkBlue">${registos.length}</span>
                     </div>
                     <div class="text-right">
+                        <span class="text-slate-500 block">Horas (${anoAtual})</span>
+                        <span class="font-bold text-base text-schmitt-blue">${formatHoras(horasAnoAtual)}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-500 block">Horas (${anoAnterior})</span>
+                        <span class="font-bold text-base text-slate-700">${formatHoras(horasAnoAnterior)}</span>
+                    </div>
+                    <div class="text-right">
                         <span class="text-slate-500 block">Carga Horária Total</span>
-                        <span class="font-bold text-base text-emerald-700">${totalHoras % 1 === 0 ? totalHoras : totalHoras.toFixed(1)} h</span>
+                        <span class="font-bold text-base text-emerald-700">${formatHoras(totalHoras)}</span>
                     </div>
                 </div>
             `;
@@ -1695,9 +1970,9 @@
             tbody.innerHTML = registos.map(r => {
                 const rMec = r.num_mec ?? r.numero_mecanografico ?? numMecTarget;
                 const rNome = r.nome || r.colaborador || nomeExibir;
-                const rCategoria = r.categoria || r.area || r.grupo || '-';
+                const rCategoria = r.tema || r.categoria || r.area || r.grupo || '-';
                 const rFormacao = r.formacao || r.designacao || r.curso || r.titulo || '-';
-                const rDataRaw = r.data || r.data_formacao || '-';
+                const rDataRaw = r.data_formacao || r.data || '-';
                 const rHorasRaw = r.horas ?? r.duracao ?? r.duracao_horas;
                 const rHoras = (rHorasRaw !== null && rHorasRaw !== undefined && rHorasRaw !== '') ? `${rHorasRaw} h` : '-';
 
@@ -1731,16 +2006,457 @@
             }
         }
 
-        function switchTab(tabId) {
-            const tabMeta = {
-                'tab-dashboard': { linkId: 'top-link-dashboard', subtitle: 'Dashboard & Gaps' },
-                'tab-matrix':    { linkId: 'top-link-matrix',    subtitle: 'Matriz de Requisitos' },
-                'tab-colab':     { linkId: 'top-link-colab',     subtitle: 'Matriz de Colaboradores' },
-                'tab-formacoes': { linkId: 'top-link-formacoes', subtitle: 'Consulta de Formações' },
-                'tab-eval':      { linkId: 'top-link-eval',      subtitle: 'Registo de Colaboradores' }
+
+        // --- INSERIR FORMAÇÕES E IMPORTAÇÃO CSV ---
+        let pendingCsvRows = [];
+
+        function populateFormacoesDatalist() {
+            const datalist = document.getElementById('formacao-categorias-datalist');
+            if (!datalist) return;
+            const nomes = new Set();
+            (dbData.categorias || []).forEach(c => {
+                if (c && c.nome) nomes.add(String(c.nome).trim());
+            });
+            (dbData.formacoes_realizadas || []).forEach(r => {
+                const cat = r.tema || r.categoria || r.area || r.grupo;
+                if (cat) nomes.add(String(cat).trim());
+            });
+            const sorted = Array.from(nomes).filter(Boolean).sort((a, b) => a.localeCompare(b));
+            datalist.innerHTML = sorted.map(n => `<option value="${escapeHtmlAttr(n)}"></option>`).join('');
+        }
+
+        function escapeHtmlAttr(val) {
+            return String(val ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function findColaboradorByNumMec(rawNumMec) {
+            const cleaned = String(rawNumMec ?? '').trim();
+            if (!cleaned) return null;
+            const targetNum = Number(cleaned);
+            return (dbData.colaboradores || []).find(c => {
+                const cMec = c.num_mec ?? c.numero_mecanografico ?? c.mec ?? c.numMec;
+                return matchNumMec(cMec, cleaned, targetNum);
+            }) || null;
+        }
+
+        function onFormacaoNumMecInput() {
+            const numMecInput = document.getElementById('formacao-num-mec');
+            const nomeInput = document.getElementById('formacao-colaborador-nome');
+            const statusEl = document.getElementById('formacao-colab-lookup-status');
+            if (!numMecInput || !nomeInput || !statusEl) return;
+
+            const raw = numMecInput.value.trim();
+            if (!raw) {
+                nomeInput.value = '';
+                statusEl.className = 'text-xs text-slate-500 flex items-center gap-1.5';
+                statusEl.innerHTML = '<span>Introduza um número mecanográfico para pesquisar na tabela de colaboradores.</span>';
+                return;
+            }
+
+            const colab = findColaboradorByNumMec(raw);
+            if (colab) {
+                nomeInput.value = colab.nome || '';
+                const deptObj = dbData.departamentos.find(d => d.id == colab.departamento_id);
+                const funcaoObj = dbData.funcoes.find(f => f.id == colab.funcao_atual_id);
+                const detalhe = [funcaoObj?.designacao, deptObj?.nome].filter(Boolean).join(' • ');
+                statusEl.className = 'text-xs text-emerald-700 font-semibold flex items-center gap-1.5';
+                statusEl.innerHTML = `<span>Colaborador encontrado na tabela: <b>${escapeHtmlAttr(colab.nome)}</b>${detalhe ? ` (${escapeHtmlAttr(detalhe)})` : ''}</span>`;
+            } else {
+                const historico = (dbData.formacoes_realizadas || []).find(r => {
+                    const rMec = r.num_mec ?? r.numero_mecanografico ?? r.mec ?? r.numMec;
+                    return matchNumMec(rMec, raw, Number(raw));
+                });
+                const nomeHist = historico?.nome || historico?.colaborador || '';
+                if (nomeHist) {
+                    nomeInput.value = nomeHist;
+                    statusEl.className = 'text-xs text-amber-700 font-medium flex items-center gap-1.5';
+                    statusEl.innerHTML = `<span>Não consta na tabela de colaboradores, mas foi encontrado no histórico de formações (<b>${escapeHtmlAttr(nomeHist)}</b>).</span>`;
+                } else {
+                    statusEl.className = 'text-xs text-amber-700 font-medium flex items-center gap-1.5';
+                    statusEl.innerHTML = `<span>Nenhum colaborador encontrado com o nº mecanográfico <b>${escapeHtmlAttr(raw)}</b> na tabela. Pode preencher o nome manualmente.</span>`;
+                }
+            }
+        }
+
+        function resetFormacaoManualForm() {
+            const form = document.getElementById('form-inserir-formacao');
+            if (form) form.reset();
+            const statusEl = document.getElementById('formacao-colab-lookup-status');
+            if (statusEl) {
+                statusEl.className = 'text-xs text-slate-500 flex items-center gap-1.5';
+                statusEl.innerHTML = '<span>Introduza um número mecanográfico para pesquisar na tabela de colaboradores.</span>';
+            }
+        }
+
+        async function handleSaveFormacaoManual(event) {
+            event.preventDefault();
+            const feedback = document.getElementById('formacao-manual-feedback');
+            const btn = document.getElementById('btn-save-formacao-manual');
+
+            const rawNumMec = document.getElementById('formacao-num-mec').value.trim();
+            const numMecParsed = rawNumMec !== '' ? (Number.isNaN(Number(rawNumMec)) ? rawNumMec : parseInt(rawNumMec, 10)) : null;
+            const colabEncontrado = findColaboradorByNumMec(rawNumMec);
+            const nomeInput = document.getElementById('formacao-colaborador-nome').value.trim();
+            const nomeColaborador = nomeInput || (colabEncontrado ? colabEncontrado.nome : '');
+
+            const categoria = document.getElementById('formacao-categoria').value.trim();
+            const formacao = document.getElementById('formacao-designacao').value.trim();
+            const dataFormacao = document.getElementById('formacao-data').value.trim();
+            const horasRaw = document.getElementById('formacao-horas').value.trim().replace(',', '.');
+            const horasNum = parseFloat(horasRaw);
+            const entidade = document.getElementById('formacao-entidade').value.trim();
+            const observacoes = document.getElementById('formacao-observacoes').value.trim();
+
+            if (!rawNumMec || !formacao || !dataFormacao || Number.isNaN(horasNum)) {
+                feedback.className = 'p-3 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 block';
+                feedback.innerText = 'Preencha todos os campos obrigatórios (num_mec, formação, data e horas).';
+                return;
+            }
+
+            const payload = {
+                num_mec: numMecParsed,
+                nome: nomeColaborador || null,
+                categoria: categoria || null,
+                formacao: formacao,
+                data_formacao: dataFormacao,
+                horas: horasNum
+            };
+            if (colabEncontrado && colabEncontrado.id != null) {
+                payload.colaborador_id = colabEncontrado.id;
+            }
+            if (entidade) {
+                payload.entidade = entidade;
+            }
+            if (observacoes) {
+                payload.observacoes = observacoes;
+            }
+
+            try {
+                if (btn) btn.disabled = true;
+                await mutateDatabase('formacoes_realizadas', 'insert', payload);
+
+                feedback.className = 'p-3 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                feedback.innerText = `Formação "${formacao}" registada com sucesso para o nº mecanográfico ${rawNumMec}.`;
+
+                resetFormacaoManualForm();
+                await fetchAllDataFromSupabase();
+                populateFormacoesDatalist();
+            } catch (err) {
+                feedback.className = 'p-3 text-xs font-semibold bg-red-50 text-red-800 border border-red-200 block';
+                feedback.innerText = 'Erro ao guardar formação: ' + err.message;
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function triggerCsvFormacoesUpload() {
+            const input = document.getElementById('csv-formacoes-file-input');
+            if (!input) return;
+            input.value = '';
+            input.click();
+        }
+
+        function cancelarImportacaoCsvFormacoes() {
+            pendingCsvRows = [];
+            const panel = document.getElementById('csv-import-panel');
+            const feedback = document.getElementById('csv-import-feedback');
+            const tbody = document.getElementById('csv-preview-tbody');
+            if (panel) panel.classList.add('hidden');
+            if (feedback) {
+                feedback.classList.add('hidden');
+                feedback.innerText = '';
+            }
+            if (tbody) tbody.innerHTML = '';
+        }
+
+        function detectCsvDelimiter(firstLine) {
+            const semicolons = (firstLine.match(/;/g) || []).length;
+            const commas = (firstLine.match(/,/g) || []).length;
+            const tabs = (firstLine.match(/\t/g) || []).length;
+            if (semicolons >= commas && semicolons >= tabs && semicolons > 0) return ';';
+            if (tabs > commas && tabs > semicolons) return '\t';
+            return ',';
+        }
+
+        function parseCsvLine(line, delimiter) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                const next = line[i + 1];
+
+                if (inQuotes) {
+                    if (ch === '"' && next === '"') {
+                        current += '"';
+                        i++;
+                    } else if (ch === '"') {
+                        inQuotes = false;
+                    } else {
+                        current += ch;
+                    }
+                } else {
+                    if (ch === '"') {
+                        inQuotes = true;
+                    } else if (ch === delimiter) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += ch;
+                    }
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        function normalizeHeaderName(header) {
+            return String(header || '')
+                .replace(/^\uFEFF/, '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+        }
+
+        function parseCsvTextToRows(csvText) {
+            const normalizedText = String(csvText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const lines = normalizedText.split('\n').filter(l => l.trim() !== '');
+            if (lines.length === 0) return [];
+
+            const delimiter = detectCsvDelimiter(lines[0]);
+            const firstCells = parseCsvLine(lines[0], delimiter);
+            const normalizedHeaders = firstCells.map(normalizeHeaderName);
+
+            const knownHeaders = new Set([
+                'num_mec', 'numero_mecanografico', 'mec', 'nummec', 'nr_mec', 'n_mec',
+                'nome', 'colaborador', 'nome_colaborador',
+                'categoria', 'tema', 'area', 'grupo',
+                'formacao', 'designacao', 'curso', 'titulo', 'acao_formacao',
+                'data', 'data_formacao', 'data_realizacao',
+                'horas', 'duracao', 'duracao_horas', 'carga_horaria',
+                'entidade', 'formador', 'observacoes', 'obs'
+            ]);
+
+            const hasHeaderRow = normalizedHeaders.some(h => knownHeaders.has(h));
+            const startIndex = hasHeaderRow ? 1 : 0;
+
+            const colIndexMap = {
+                num_mec: -1,
+                nome: -1,
+                categoria: -1,
+                formacao: -1,
+                data: -1,
+                horas: -1,
+                entidade: -1,
+                observacoes: -1
             };
 
-            ['dashboard', 'matrix', 'colab', 'formacoes', 'eval'].forEach(t => {
+            if (hasHeaderRow) {
+                normalizedHeaders.forEach((h, idx) => {
+                    if (['num_mec', 'numero_mecanografico', 'mec', 'nummec', 'nr_mec', 'n_mec'].includes(h) && colIndexMap.num_mec === -1) colIndexMap.num_mec = idx;
+                    else if (['nome', 'colaborador', 'nome_colaborador'].includes(h) && colIndexMap.nome === -1) colIndexMap.nome = idx;
+                    else if (['categoria', 'tema', 'area', 'grupo'].includes(h) && colIndexMap.categoria === -1) colIndexMap.categoria = idx;
+                    else if (['formacao', 'designacao', 'curso', 'titulo', 'acao_formacao'].includes(h) && colIndexMap.formacao === -1) colIndexMap.formacao = idx;
+                    else if (['data', 'data_formacao', 'data_realizacao'].includes(h) && colIndexMap.data === -1) colIndexMap.data = idx;
+                    else if (['horas', 'duracao', 'duracao_horas', 'carga_horaria'].includes(h) && colIndexMap.horas === -1) colIndexMap.horas = idx;
+                    else if (['entidade', 'formador'].includes(h) && colIndexMap.entidade === -1) colIndexMap.entidade = idx;
+                    else if (['observacoes', 'obs'].includes(h) && colIndexMap.observacoes === -1) colIndexMap.observacoes = idx;
+                });
+            } else {
+                colIndexMap.num_mec = 0;
+                colIndexMap.nome = 1;
+                colIndexMap.categoria = 2;
+                colIndexMap.formacao = 3;
+                colIndexMap.data = 4;
+                colIndexMap.horas = 5;
+                colIndexMap.entidade = 6;
+                colIndexMap.observacoes = 7;
+            }
+
+            const rows = [];
+            for (let i = startIndex; i < lines.length; i++) {
+                const cells = parseCsvLine(lines[i], delimiter);
+                if (cells.every(c => c === '')) continue;
+
+                const getVal = (key) => {
+                    const idx = colIndexMap[key];
+                    return (idx >= 0 && idx < cells.length) ? cells[idx] : '';
+                };
+
+                const rawNumMec = getVal('num_mec');
+                const colabMatch = findColaboradorByNumMec(rawNumMec);
+                const nomeCsv = getVal('nome');
+                const nomeFinal = nomeCsv || (colabMatch ? colabMatch.nome : '');
+                const categoriaFinal = getVal('categoria');
+                const formacaoFinal = getVal('formacao');
+                const dataFinal = getVal('data');
+                const horasRaw = getVal('horas').replace(',', '.');
+                const horasNum = horasRaw !== '' ? parseFloat(horasRaw) : NaN;
+                const entidadeFinal = getVal('entidade');
+                const obsFinal = getVal('observacoes');
+
+                const errors = [];
+                if (!rawNumMec) errors.push('num_mec em falta');
+                if (!formacaoFinal) errors.push('formação em falta');
+                if (!dataFinal) errors.push('data em falta');
+                if (Number.isNaN(horasNum)) errors.push('horas inválidas');
+
+                const numMecParsed = rawNumMec !== ''
+                    ? (Number.isNaN(Number(rawNumMec)) ? rawNumMec : parseInt(rawNumMec, 10))
+                    : null;
+
+                const payload = {
+                    num_mec: numMecParsed,
+                    nome: nomeFinal || null,
+                    categoria: categoriaFinal || null,
+                    formacao: formacaoFinal,
+                    data_formacao: dataFinal,
+                    horas: Number.isNaN(horasNum) ? 0 : horasNum
+                };
+                if (colabMatch && colabMatch.id != null) {
+                    payload.colaborador_id = colabMatch.id;
+                }
+                if (entidadeFinal) payload.entidade = entidadeFinal;
+                if (obsFinal) payload.observacoes = obsFinal;
+
+                rows.push({
+                    lineNumber: i + 1,
+                    rawNumMec,
+                    nomeDisplay: nomeFinal || (colabMatch ? colabMatch.nome : '-'),
+                    matchedColab: Boolean(colabMatch),
+                    categoriaDisplay: categoriaFinal || '-',
+                    formacaoDisplay: formacaoFinal || '-',
+                    dataDisplay: dataFinal || '-',
+                    horasDisplay: Number.isNaN(horasNum) ? (horasRaw || '-') : `${horasNum} h`,
+                    valid: errors.length === 0,
+                    errors,
+                    payload
+                });
+            }
+
+            return rows;
+        }
+
+        function handleCsvFormacoesFileChange(event) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target?.result || '';
+                const parsedRows = parseCsvTextToRows(content);
+                pendingCsvRows = parsedRows;
+
+                const panel = document.getElementById('csv-import-panel');
+                const summaryEl = document.getElementById('csv-file-summary');
+                const valEl = document.getElementById('csv-validation-summary');
+                const tbody = document.getElementById('csv-preview-tbody');
+                const confirmBtn = document.getElementById('btn-confirm-csv-import');
+                const feedback = document.getElementById('csv-import-feedback');
+
+                if (feedback) {
+                    feedback.classList.add('hidden');
+                    feedback.innerText = '';
+                }
+
+                const validCount = parsedRows.filter(r => r.valid).length;
+                const invalidCount = parsedRows.length - validCount;
+
+                if (summaryEl) summaryEl.innerText = `Ficheiro: ${file.name} (${parsedRows.length} registo(s))`;
+                if (valEl) {
+                    valEl.innerText = invalidCount > 0
+                        ? `${validCount} válido(s) para importar • ${invalidCount} com erro(s) (serão ignorados ou corrigidos no CSV).`
+                        : `${validCount} registo(s) válido(s) prontos para importar.`;
+                }
+                if (confirmBtn) confirmBtn.disabled = validCount === 0;
+
+                if (tbody) {
+                    if (parsedRows.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">O ficheiro CSV não contém linhas de dados.</td></tr>`;
+                    } else {
+                        tbody.innerHTML = parsedRows.map(r => {
+                            const statusHtml = r.valid
+                                ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px]">Válido${r.matchedColab ? '' : ' (sem colab.)'}</span>`
+                                : `<span class="px-2 py-0.5 bg-red-100 text-red-800 font-bold text-[11px]" title="${escapeHtmlAttr(r.errors.join(', '))}">Erro: ${escapeHtmlAttr(r.errors.join(', '))}</span>`;
+
+                            return `
+                                <tr class="${r.valid ? 'hover:bg-slate-50' : 'bg-red-50/40'}">
+                                    <td class="p-2.5 text-slate-500 font-mono">${r.lineNumber}</td>
+                                    <td class="p-2.5 font-bold text-schmitt-blue">${escapeHtmlAttr(r.rawNumMec || '-')}</td>
+                                    <td class="p-2.5 font-semibold text-slate-800">${escapeHtmlAttr(r.nomeDisplay)}</td>
+                                    <td class="p-2.5 text-slate-600">${escapeHtmlAttr(r.categoriaDisplay)}</td>
+                                    <td class="p-2.5 font-medium text-slate-800">${escapeHtmlAttr(r.formacaoDisplay)}</td>
+                                    <td class="p-2.5 text-center text-slate-600">${escapeHtmlAttr(r.dataDisplay)}</td>
+                                    <td class="p-2.5 text-center font-semibold text-slate-700">${escapeHtmlAttr(r.horasDisplay)}</td>
+                                    <td class="p-2.5">${statusHtml}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                if (panel) panel.classList.remove('hidden');
+                lucide.createIcons();
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        async function confirmarImportacaoCsvFormacoes() {
+            const validRows = pendingCsvRows.filter(r => r.valid);
+            const feedback = document.getElementById('csv-import-feedback');
+            const confirmBtn = document.getElementById('btn-confirm-csv-import');
+
+            if (validRows.length === 0) return;
+
+            let inserted = 0;
+            const errors = [];
+
+            if (confirmBtn) confirmBtn.disabled = true;
+
+            for (const row of validRows) {
+                try {
+                    await mutateDatabase('formacoes_realizadas', 'insert', row.payload);
+                    inserted++;
+                } catch (err) {
+                    errors.push(`Linha ${row.lineNumber}: ${err.message}`);
+                }
+            }
+
+            if (feedback) {
+                if (errors.length === 0) {
+                    feedback.className = 'p-3 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                    feedback.innerText = `${inserted} formação(ões) importada(s) com sucesso para a base de dados.`;
+                } else {
+                    feedback.className = 'p-3 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 block';
+                    feedback.innerText = `${inserted} importada(s), ${errors.length} falharam (${errors.join(' | ')}).`;
+                }
+            }
+
+            await fetchAllDataFromSupabase();
+            populateFormacoesDatalist();
+            if (confirmBtn) confirmBtn.disabled = false;
+        }
+
+                function switchTab(tabId) {
+            const tabMeta = {
+                'tab-dashboard':         { linkId: 'top-link-dashboard',         subtitle: 'Dashboard & Gaps' },
+                'tab-matrix':            { linkId: 'top-link-matrix',            subtitle: 'Matriz de Requisitos' },
+                'tab-colab':             { linkId: 'top-link-colab',             subtitle: 'Matriz de Colaboradores' },
+                'tab-formacoes':         { linkId: 'top-link-formacoes',         subtitle: 'Consulta de Formações' },
+                'tab-inserir-formacoes': { linkId: 'top-link-inserir-formacoes', subtitle: 'Inserir Formações' },
+                'tab-eval':              { linkId: 'top-link-eval',              subtitle: 'Registo de Colaboradores' }
+            };
+
+            ['dashboard', 'matrix', 'colab', 'formacoes', 'inserir-formacoes', 'eval'].forEach(t => {
                 const page = document.getElementById(`tab-${t}`);
                 if (page) {
                     if (`tab-${t}` === tabId) page.classList.remove('hidden');
@@ -1764,7 +2480,11 @@
             }
 
             const profLegend = document.getElementById('proficiencia-legend-box');
-            if (tabId === 'tab-eval' || tabId === 'tab-formacoes') {
+            if (tabId === 'tab-eval' || tabId === 'tab-formacoes' || tabId === 'tab-inserir-formacoes') {
+                if (tabId === 'tab-inserir-formacoes') {
+                    populateFormacoesDatalist();
+                    onFormacaoNumMecInput();
+                }
                 profLegend.classList.add('hidden');
                 if (tabId === 'tab-eval') populateRegistoFormDropdowns();
             } else {
@@ -1828,3 +2548,4 @@
     </div>
 </body>
 </html>
+
