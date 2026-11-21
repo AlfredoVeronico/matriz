@@ -8,7 +8,9 @@ const supabase = createClient(
 const TABELAS_PERMITIDAS = [
   'colaboradores',
   'requisitos_funcao',
-  'avaliacoes_colaborador'
+  'avaliacoes_colaborador',
+  'formacoes_realizadas',
+  'equipas'
 ];
 
 export default async function handler(req, res) {
