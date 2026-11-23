@@ -77,33 +77,78 @@
                         </svg>
                     </a>
 
-                    <!-- Navegação Desktop -->
-                    <nav class="hidden md:flex items-center gap-5 lg:gap-6 text-xs lg:text-sm font-medium text-slate-200">
-                        <button type="button" id="top-link-dashboard" onclick="switchTab('tab-dashboard')" class="py-5 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap">
-                            Dashboard &amp; Gaps
-                        </button>
-                        <button type="button" id="top-link-matrix" onclick="switchTab('tab-matrix')" class="py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
-                            Matriz de Requisitos
-                        </button>
-                        <button type="button" id="top-link-colab" onclick="switchTab('tab-colab')" class="py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
-                            Matriz de Colaboradores
-                        </button>
-                        <button type="button" id="top-link-formacoes" onclick="switchTab('tab-formacoes')" class="py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
-                            Consulta de Formações
-                        </button>
-                        <button type="button" id="top-link-inserir-formacoes" onclick="switchTab('tab-inserir-formacoes')" class="py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
-                            Inserir Formações
-                        </button>
-                        <button type="button" id="top-link-eval" onclick="switchTab('tab-eval')" class="py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap">
-                            Registo de Colaboradores
-                        </button>
+                    <!-- Navegação Desktop com Submenus -->
+                    <nav id="desktop-main-nav" aria-label="Menu principal" class="hidden md:flex items-center gap-6 lg:gap-8 text-xs lg:text-sm font-medium text-slate-200">
+                        <!-- Grupo 1: Colaboradores -->
+                        <div class="relative group" data-nav-group="colaboradores">
+                            <button type="button" id="top-group-colaboradores" onclick="toggleDesktopDropdown('colaboradores')" aria-expanded="false"
+                                    class="py-5 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap inline-flex items-center gap-1.5">
+                                <span>Colaboradores</span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-80"></i>
+                            </button>
+                            <div id="dropdown-colaboradores"
+                                 class="hidden group-hover:block focus-within:block absolute left-0 top-full min-w-[230px] bg-[#090c12] border border-white/15 shadow-xl z-50 divide-y divide-white/10">
+                                <button type="button" id="top-link-dashboard" onclick="switchTab('tab-dashboard')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-sky-400 bg-white/10 text-white font-semibold hover:bg-white/10 transition flex items-center justify-between">
+                                    <span>Dashboard</span>
+                                </button>
+                                <button type="button" id="top-link-eval" onclick="switchTab('tab-eval')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Registo de Colaboradores</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grupo 2: Matriz de Competências -->
+                        <div class="relative group" data-nav-group="matriz-competencias">
+                            <button type="button" id="top-group-matriz-competencias" onclick="toggleDesktopDropdown('matriz-competencias')" aria-expanded="false"
+                                    class="py-5 border-b-2 border-transparent text-slate-200 hover:text-white transition whitespace-nowrap inline-flex items-center gap-1.5">
+                                <span>Matriz de Competências</span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-80"></i>
+                            </button>
+                            <div id="dropdown-matriz-competencias"
+                                 class="hidden group-hover:block focus-within:block absolute left-0 top-full min-w-[230px] bg-[#090c12] border border-white/15 shadow-xl z-50 divide-y divide-white/10">
+                                <button type="button" id="top-link-matrix" onclick="switchTab('tab-matrix')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Matriz Requisitos</span>
+                                </button>
+                                <button type="button" id="top-link-colab" onclick="switchTab('tab-colab')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Competências/Equipa</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grupo 3: Desenvolvimento Competências -->
+                        <div class="relative group" data-nav-group="desenvolvimento-competencias">
+                            <button type="button" id="top-group-desenvolvimento-competencias" onclick="toggleDesktopDropdown('desenvolvimento-competencias')" aria-expanded="false"
+                                    class="py-5 border-b-2 border-transparent text-slate-200 hover:text-white transition whitespace-nowrap inline-flex items-center gap-1.5">
+                                <span>Desenvolvimento Competências</span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-80"></i>
+                            </button>
+                            <div id="dropdown-desenvolvimento-competencias"
+                                 class="hidden group-hover:block focus-within:block absolute left-0 top-full min-w-[240px] bg-[#090c12] border border-white/15 shadow-xl z-50 divide-y divide-white/10">
+                                <button type="button" id="top-link-inserir-formacoes" onclick="switchTab('tab-inserir-formacoes')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Registo de Formações</span>
+                                </button>
+                                <button type="button" id="top-link-formacoes" onclick="switchTab('tab-formacoes')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Consulta de Formações</span>
+                                </button>
+                                <button type="button" id="top-link-matriz-formacoes" onclick="switchTab('tab-matriz-formacoes')"
+                                        class="w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                                    <span>Matriz de formações</span>
+                                </button>
+                            </div>
+                        </div>
                     </nav>
                 </div>
 
                 <!-- Botão Menu Telemóvel (ecrãs < md) -->
                 <div class="flex items-center gap-2 md:hidden">
-                    <span id="mobile-current-tab-label" class="text-xs font-semibold text-sky-300 truncate max-w-[160px]">
-                        Dashboard &amp; Gaps
+                    <span id="mobile-current-tab-label" class="text-xs font-semibold text-sky-300 truncate max-w-[170px]">
+                        Colaboradores • Dashboard
                     </span>
                     <button type="button" id="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobile-nav-drawer" aria-label="Abrir menu de navegação"
                             class="p-2 text-slate-200 hover:text-white hover:bg-white/10 border border-white/15 transition flex items-center justify-center">
@@ -114,33 +159,63 @@
             </div>
         </div>
 
-        <!-- Menu Vertical Telemóvel -->
+        <!-- Menu Vertical Telemóvel Hierárquico -->
         <div id="mobile-nav-drawer" class="hidden md:hidden bg-[#090c12] border-t border-white/10">
-            <nav aria-label="Menu principal telemóvel" class="max-w-7xl mx-auto px-4 py-2 flex flex-col divide-y divide-white/10 text-xs font-medium">
-                <button type="button" id="mobile-link-dashboard" onclick="switchTab('tab-dashboard')" class="w-full text-left py-3 px-2 border-l-2 border-sky-400 bg-white/5 text-white font-semibold transition flex items-center justify-between">
-                    <span>Dashboard &amp; Gaps</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-sky-400"></i>
-                </button>
-                <button type="button" id="mobile-link-matrix" onclick="switchTab('tab-matrix')" class="w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
-                    <span>Matriz de Requisitos</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-                </button>
-                <button type="button" id="mobile-link-colab" onclick="switchTab('tab-colab')" class="w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
-                    <span>Matriz de Colaboradores</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-                </button>
-                <button type="button" id="mobile-link-formacoes" onclick="switchTab('tab-formacoes')" class="w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
-                    <span>Consulta de Formações</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-                </button>
-                <button type="button" id="mobile-link-inserir-formacoes" onclick="switchTab('tab-inserir-formacoes')" class="w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
-                    <span>Inserir Formações</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-                </button>
-                <button type="button" id="mobile-link-eval" onclick="switchTab('tab-eval')" class="w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
-                    <span>Registo de Colaboradores</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-                </button>
+            <nav aria-label="Menu principal telemóvel" class="max-w-7xl mx-auto px-4 py-3 space-y-3 text-xs font-medium">
+                <!-- Secção: Colaboradores -->
+                <div class="space-y-1">
+                    <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300/90">
+                        Colaboradores
+                    </div>
+                    <div class="flex flex-col divide-y divide-white/10 border border-white/10">
+                        <button type="button" id="mobile-link-dashboard" onclick="switchTab('tab-dashboard')" class="w-full text-left py-2.5 px-3 border-l-2 border-sky-400 bg-white/5 text-white font-semibold transition flex items-center justify-between">
+                            <span>Dashboard</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-sky-400"></i>
+                        </button>
+                        <button type="button" id="mobile-link-eval" onclick="switchTab('tab-eval')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Registo de Colaboradores</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secção: Matriz de Competências -->
+                <div class="space-y-1">
+                    <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300/90">
+                        Matriz de Competências
+                    </div>
+                    <div class="flex flex-col divide-y divide-white/10 border border-white/10">
+                        <button type="button" id="mobile-link-matrix" onclick="switchTab('tab-matrix')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Matriz Requisitos</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                        <button type="button" id="mobile-link-colab" onclick="switchTab('tab-colab')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Competências/Equipa</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secção: Desenvolvimento Competências -->
+                <div class="space-y-1">
+                    <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300/90">
+                        Desenvolvimento Competências
+                    </div>
+                    <div class="flex flex-col divide-y divide-white/10 border border-white/10">
+                        <button type="button" id="mobile-link-inserir-formacoes" onclick="switchTab('tab-inserir-formacoes')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Registo de Formações</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                        <button type="button" id="mobile-link-formacoes" onclick="switchTab('tab-formacoes')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Consulta de Formações</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                        <button type="button" id="mobile-link-matriz-formacoes" onclick="switchTab('tab-matriz-formacoes')" class="w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between">
+                            <span>Matriz de formações</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -153,7 +228,7 @@
                     Matriz de Competências &amp; Dashboard
                 </h1>
                 <p id="active-section-subtitle" class="text-xs sm:text-sm text-sky-100/90 mt-1.5">
-                    Dashboard &amp; Gaps
+                    Colaboradores • Dashboard
                 </p>
             </div>
         </div>
@@ -326,7 +401,7 @@
             </div>
         </div>
 
-        <!-- TAB 2: MATRIZ DE COLABORADORES -->
+        <!-- TAB 2: COMPETÊNCIAS / EQUIPA -->
         <div id="tab-colab" class="hidden space-y-4">
             <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-5">
                 <div class="p-4 sm:p-5 bg-slate-50/80 border border-slate-200 space-y-4">
@@ -467,7 +542,7 @@
             </div>
         </div>
 
-        <!-- TAB: INSERIR FORMAÇÕES E IMPORTAÇÃO CSV -->
+        <!-- TAB: REGISTO DE FORMAÇÕES E IMPORTAÇÃO CSV -->
         <div id="tab-inserir-formacoes" class="hidden space-y-4">
             <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-6 w-full">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
@@ -623,6 +698,29 @@
             </div>
         </div>
 
+        <!-- TAB: MATRIZ DE FORMAÇÕES (EM DESENVOLVIMENTO) -->
+        <div id="tab-matriz-formacoes" class="hidden space-y-4">
+            <div class="bg-white p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="grid" class="w-5 h-5 text-schmitt-blue"></i>
+                            <span>Matriz de Formações</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Vista consolidada de formações por colaborador, equipa ou área.</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 w-fit">
+                        Em desenvolvimento
+                    </span>
+                </div>
+
+                <div class="p-6 bg-slate-50 border border-dashed border-slate-300 text-xs text-slate-600 space-y-1.5">
+                    <p class="font-bold text-slate-800">Página reservada para desenvolvimento da Matriz de Formações.</p>
+                    <p>Quando definir a estrutura de linhas, colunas e filtros pretendidos, esta secção será preenchida mantendo o mesmo padrão visual e ligação aos dados.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB 3: REGISTO DE COLABORADORES -->
         <div id="tab-eval" class="hidden space-y-4">
             <div class="bg-white p-5 border border-slate-200/80 shadow-sm space-y-6 w-full">
@@ -712,6 +810,7 @@
         let pendingColabSelection = null;
         let dashboardSearchMatches = [];
         let dashboardSearchActiveIndex = -1;
+        let openDesktopDropdownGroup = null;
 
         let dbData = {
             departamentos: [],
@@ -733,8 +832,43 @@
             renderLegendCircles();
             initRadarChart();
             bindDashboardSearchDismiss();
+            bindDesktopDropdownDismiss();
             fetchAllDataFromSupabase();
         };
+
+        function bindDesktopDropdownDismiss() {
+            document.addEventListener('click', function(event) {
+                const nav = document.getElementById('desktop-main-nav');
+                if (!nav || !nav.contains(event.target)) {
+                    closeAllDesktopDropdowns();
+                }
+            });
+        }
+
+        function closeAllDesktopDropdowns() {
+            openDesktopDropdownGroup = null;
+            ['colaboradores', 'matriz-competencias', 'desenvolvimento-competencias'].forEach(grp => {
+                const dd = document.getElementById(`dropdown-${grp}`);
+                const btn = document.getElementById(`top-group-${grp}`);
+                if (dd) dd.classList.add('hidden');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        function toggleDesktopDropdown(groupKey) {
+            const dd = document.getElementById(`dropdown-${groupKey}`);
+            const btn = document.getElementById(`top-group-${groupKey}`);
+            if (!dd) return;
+
+            const willOpen = dd.classList.contains('hidden');
+            closeAllDesktopDropdowns();
+
+            if (willOpen) {
+                dd.classList.remove('hidden');
+                if (btn) btn.setAttribute('aria-expanded', 'true');
+                openDesktopDropdownGroup = groupKey;
+            }
+        }
 
         function bindDashboardSearchDismiss() {
             document.addEventListener('click', function(event) {
@@ -2812,15 +2946,60 @@
 
         function switchTab(tabId) {
             const tabMeta = {
-                'tab-dashboard':         { linkId: 'top-link-dashboard',         mobileLinkId: 'mobile-link-dashboard',         subtitle: 'Dashboard & Gaps' },
-                'tab-matrix':            { linkId: 'top-link-matrix',            mobileLinkId: 'mobile-link-matrix',            subtitle: 'Matriz de Requisitos' },
-                'tab-colab':             { linkId: 'top-link-colab',             mobileLinkId: 'mobile-link-colab',             subtitle: 'Matriz de Colaboradores' },
-                'tab-formacoes':         { linkId: 'top-link-formacoes',         mobileLinkId: 'mobile-link-formacoes',         subtitle: 'Consulta de Formações' },
-                'tab-inserir-formacoes': { linkId: 'top-link-inserir-formacoes', mobileLinkId: 'mobile-link-inserir-formacoes', subtitle: 'Inserir Formações' },
-                'tab-eval':              { linkId: 'top-link-eval',              mobileLinkId: 'mobile-link-eval',              subtitle: 'Registo de Colaboradores' }
+                'tab-dashboard': {
+                    group: 'colaboradores',
+                    linkId: 'top-link-dashboard',
+                    mobileLinkId: 'mobile-link-dashboard',
+                    subtitle: 'Colaboradores • Dashboard',
+                    mobileLabel: 'Colaboradores • Dashboard'
+                },
+                'tab-eval': {
+                    group: 'colaboradores',
+                    linkId: 'top-link-eval',
+                    mobileLinkId: 'mobile-link-eval',
+                    subtitle: 'Colaboradores • Registo de Colaboradores',
+                    mobileLabel: 'Colaboradores • Registo'
+                },
+                'tab-matrix': {
+                    group: 'matriz-competencias',
+                    linkId: 'top-link-matrix',
+                    mobileLinkId: 'mobile-link-matrix',
+                    subtitle: 'Matriz de Competências • Matriz Requisitos',
+                    mobileLabel: 'Matriz • Requisitos'
+                },
+                'tab-colab': {
+                    group: 'matriz-competencias',
+                    linkId: 'top-link-colab',
+                    mobileLinkId: 'mobile-link-colab',
+                    subtitle: 'Matriz de Competências • Competências/Equipa',
+                    mobileLabel: 'Matriz • Competências/Equipa'
+                },
+                'tab-inserir-formacoes': {
+                    group: 'desenvolvimento-competencias',
+                    linkId: 'top-link-inserir-formacoes',
+                    mobileLinkId: 'mobile-link-inserir-formacoes',
+                    subtitle: 'Desenvolvimento Competências • Registo de Formações',
+                    mobileLabel: 'Desenvolvimento • Registo'
+                },
+                'tab-formacoes': {
+                    group: 'desenvolvimento-competencias',
+                    linkId: 'top-link-formacoes',
+                    mobileLinkId: 'mobile-link-formacoes',
+                    subtitle: 'Desenvolvimento Competências • Consulta de Formações',
+                    mobileLabel: 'Desenvolvimento • Consulta'
+                },
+                'tab-matriz-formacoes': {
+                    group: 'desenvolvimento-competencias',
+                    linkId: 'top-link-matriz-formacoes',
+                    mobileLinkId: 'mobile-link-matriz-formacoes',
+                    subtitle: 'Desenvolvimento Competências • Matriz de formações',
+                    mobileLabel: 'Desenvolvimento • Matriz Formações'
+                }
             };
 
-            ['dashboard', 'matrix', 'colab', 'formacoes', 'inserir-formacoes', 'eval'].forEach(t => {
+            const activeMeta = tabMeta[tabId] || tabMeta['tab-dashboard'];
+
+            ['dashboard', 'matrix', 'colab', 'formacoes', 'inserir-formacoes', 'matriz-formacoes', 'eval'].forEach(t => {
                 const page = document.getElementById(`tab-${t}`);
                 if (page) {
                     if (`tab-${t}` === tabId) page.classList.remove('hidden');
@@ -2828,13 +3007,24 @@
                 }
             });
 
+            ['colaboradores', 'matriz-competencias', 'desenvolvimento-competencias'].forEach(grp => {
+                const grpBtn = document.getElementById(`top-group-${grp}`);
+                if (grpBtn) {
+                    if (grp === activeMeta.group) {
+                        grpBtn.className = "py-5 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap inline-flex items-center gap-1.5";
+                    } else {
+                        grpBtn.className = "py-5 border-b-2 border-transparent text-slate-200 hover:text-white transition whitespace-nowrap inline-flex items-center gap-1.5";
+                    }
+                }
+            });
+
             Object.entries(tabMeta).forEach(([id, meta]) => {
                 const linkEl = document.getElementById(meta.linkId);
                 if (linkEl) {
                     if (id === tabId) {
-                        linkEl.className = "py-5 border-b-2 border-sky-400 text-white font-semibold transition whitespace-nowrap";
+                        linkEl.className = "w-full text-left px-4 py-3 text-xs border-l-2 border-sky-400 bg-white/10 text-white font-semibold hover:bg-white/10 transition flex items-center justify-between";
                     } else {
-                        linkEl.className = "py-5 border-b-2 border-transparent hover:text-white transition whitespace-nowrap";
+                        linkEl.className = "w-full text-left px-4 py-3 text-xs border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between";
                     }
                 }
 
@@ -2842,29 +3032,37 @@
                 if (mobileLinkEl) {
                     const chevron = mobileLinkEl.querySelector('[data-lucide="chevron-right"]');
                     if (id === tabId) {
-                        mobileLinkEl.className = "w-full text-left py-3 px-2 border-l-2 border-sky-400 bg-white/5 text-white font-semibold transition flex items-center justify-between";
+                        mobileLinkEl.className = "w-full text-left py-2.5 px-3 border-l-2 border-sky-400 bg-white/5 text-white font-semibold transition flex items-center justify-between";
                         if (chevron) chevron.className = "w-4 h-4 text-sky-400";
                     } else {
-                        mobileLinkEl.className = "w-full text-left py-3 px-2 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between";
+                        mobileLinkEl.className = "w-full text-left py-2.5 px-3 border-l-2 border-transparent text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center justify-between";
                         if (chevron) chevron.className = "w-4 h-4 text-slate-500";
                     }
                 }
             });
 
+            closeAllDesktopDropdowns();
+
             const subtitleEl = document.getElementById('active-section-subtitle');
-            if (subtitleEl && tabMeta[tabId]) {
-                subtitleEl.textContent = tabMeta[tabId].subtitle;
+            if (subtitleEl) {
+                subtitleEl.textContent = activeMeta.subtitle;
             }
 
             const mobileCurrentLabel = document.getElementById('mobile-current-tab-label');
-            if (mobileCurrentLabel && tabMeta[tabId]) {
-                mobileCurrentLabel.textContent = tabMeta[tabId].subtitle;
+            if (mobileCurrentLabel) {
+                mobileCurrentLabel.textContent = activeMeta.mobileLabel;
             }
 
             closeMobileMenu();
 
             const profLegend = document.getElementById('proficiencia-legend-box');
-            if (tabId === 'tab-dashboard' || tabId === 'tab-eval' || tabId === 'tab-formacoes' || tabId === 'tab-inserir-formacoes') {
+            if (
+                tabId === 'tab-dashboard' ||
+                tabId === 'tab-eval' ||
+                tabId === 'tab-formacoes' ||
+                tabId === 'tab-inserir-formacoes' ||
+                tabId === 'tab-matriz-formacoes'
+            ) {
                 if (tabId === 'tab-inserir-formacoes') {
                     populateFormacoesDatalist();
                     onFormacaoNumMecInput();
