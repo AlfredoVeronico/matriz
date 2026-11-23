@@ -237,8 +237,8 @@
                 <div class="bg-white p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Colaborador em Avaliação</span>
                     <div class="mt-2">
-                        <select id="dash-colab-select" onchange="onDashboardColabChange()" class="w-full text-lg font-extrabold text-schmitt-darkBlue bg-transparent focus:outline-none cursor-pointer border-b border-schmitt-blue/30 pb-1">
-                        </select>
+                        <input type="hidden" id="dash-colab-select" value="">
+                        <div id="dash-colab-display" class="text-lg font-extrabold text-schmitt-darkBlue pb-1 truncate">—</div>
                     </div>
                     <p id="dash-colab-role-dept" class="text-xs text-slate-500 mt-3">Função • Departamento</p>
                 </div>
@@ -881,27 +881,36 @@
             return val !== null && val !== undefined ? String(val).trim() : '';
         }
 
-        function formatColaboradorOptionLabel(colab) {
-            const mec = getColaboradorNumMec(colab);
-            return mec ? `${colab.nome} (#${mec})` : colab.nome;
+        function setDashboardSelectedColabId(colabId) {
+            const hiddenInput = document.getElementById('dash-colab-select');
+            const displayEl = document.getElementById('dash-colab-display');
+            if (!hiddenInput) return;
+
+            const colab = (dbData.colaboradores || []).find(c => String(c.id) === String(colabId));
+            if (colab) {
+                hiddenInput.value = String(colab.id);
+                if (displayEl) displayEl.textContent = colab.nome || '—';
+            } else {
+                hiddenInput.value = '';
+                if (displayEl) displayEl.textContent = '—';
+            }
         }
 
         function populateDashboardDropdowns() {
-            const colabSelect = document.getElementById('dash-colab-select');
-            const currentColab = colabSelect.value;
+            const hiddenInput = document.getElementById('dash-colab-select');
+            const currentColab = hiddenInput ? hiddenInput.value : '';
 
             const sortedColabs = [...(dbData.colaboradores || [])].sort((a, b) =>
                 String(a.nome || '').localeCompare(String(b.nome || ''))
             );
 
-            colabSelect.innerHTML = sortedColabs.map(c =>
-                `<option value="${c.id}">${escapeHtmlAttr(formatColaboradorOptionLabel(c))}</option>`
-            ).join('');
-
-            if (Array.from(colabSelect.options).some(o => o.value === currentColab)) {
-                colabSelect.value = currentColab;
-            } else if (colabSelect.options.length > 0) {
-                colabSelect.selectedIndex = 0;
+            const exists = sortedColabs.some(c => String(c.id) === String(currentColab));
+            if (exists) {
+                setDashboardSelectedColabId(currentColab);
+            } else if (sortedColabs.length > 0) {
+                setDashboardSelectedColabId(sortedColabs[0].id);
+            } else {
+                setDashboardSelectedColabId('');
             }
 
             syncDashboardSearchInputWithSelectedColab();
@@ -912,10 +921,10 @@
             const searchInput = document.getElementById('dash-colab-search');
             const clearBtn = document.getElementById('dash-colab-search-clear');
             const metaEl = document.getElementById('dash-colab-search-meta');
-            const colabSelect = document.getElementById('dash-colab-select');
-            if (!searchInput || !colabSelect) return;
+            const hiddenInput = document.getElementById('dash-colab-select');
+            if (!searchInput || !hiddenInput) return;
 
-            const colab = dbData.colaboradores.find(c => String(c.id) === String(colabSelect.value));
+            const colab = dbData.colaboradores.find(c => String(c.id) === String(hiddenInput.value));
             if (colab) {
                 const mec = getColaboradorNumMec(colab);
                 searchInput.value = mec ? `${colab.nome} (${mec})` : colab.nome;
@@ -1095,27 +1104,24 @@
         }
 
         function selectDashboardColabFromSearch(colabId) {
-            const colabSelect = document.getElementById('dash-colab-select');
-            if (!colabSelect) return;
-            colabSelect.value = String(colabId);
+            setDashboardSelectedColabId(colabId);
             hideDashboardSearchResults();
             onDashboardColabChange();
         }
 
         function updateDashboardRolesForSelectedColab() {
-            const colabSelect = document.getElementById('dash-colab-select');
+            const hiddenInput = document.getElementById('dash-colab-select');
             const roleSelect = document.getElementById('dash-target-role-select');
             const currentRole = roleSelect.value;
 
-            const activeColab = dbData.colaboradores.find(c => c.id == colabSelect.value);
+            const activeColab = hiddenInput ? dbData.colaboradores.find(c => c.id == hiddenInput.value) : null;
             const deptId = activeColab ? activeColab.departamento_id : null;
 
             const roleInfoEl = document.getElementById('dash-colab-role-dept');
             if (activeColab && roleInfoEl) {
                 const funcaoObj = dbData.funcoes.find(f => f.id == activeColab.funcao_atual_id) || { designacao: 'Sem Função' };
                 const deptObj = dbData.departamentos.find(d => d.id == activeColab.departamento_id) || { nome: 'Geral' };
-                const mec = getColaboradorNumMec(activeColab);
-                roleInfoEl.innerText = `${mec ? `#${mec} • ` : ''}${funcaoObj.designacao} • ${deptObj.nome}`;
+                roleInfoEl.innerText = `${funcaoObj.designacao} • ${deptObj.nome}`;
             }
 
             let validRoles = dbData.funcoes;
@@ -1198,7 +1204,8 @@
         }
 
         function renderDashboard() {
-            const colabId = document.getElementById('dash-colab-select').value;
+            const hiddenInput = document.getElementById('dash-colab-select');
+            const colabId = hiddenInput ? hiddenInput.value : '';
             const funcaoId = document.getElementById('dash-target-role-select').value;
             if (!colabId || !funcaoId) return;
 
@@ -2925,4 +2932,5 @@
     </div>
 </body>
 </html>
+
 
